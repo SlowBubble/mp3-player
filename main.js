@@ -22,33 +22,7 @@ const progressBar = document.getElementById('progress-bar');
 document.addEventListener('DOMContentLoaded', function() {
     audioPlayer = document.getElementById('audio-player');
     setupEventListeners();
-    registerServiceWorker();
 });
-
-// Register service worker for better background support
-async function registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-        try {
-            // Create a minimal service worker inline
-            const swCode = `
-                self.addEventListener('message', event => {
-                    if (event.data && event.data.type === 'KEEP_ALIVE') {
-                        // Keep service worker alive
-                        event.ports[0].postMessage('OK');
-                    }
-                });
-            `;
-            
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            
-            await navigator.serviceWorker.register(swUrl);
-            console.log('Service worker registered for background support');
-        } catch (error) {
-            console.log('Service worker registration failed:', error);
-        }
-    }
-}
 
 // Setup event listeners
 function setupEventListeners() {
