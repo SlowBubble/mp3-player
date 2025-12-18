@@ -72,10 +72,24 @@ function handleFileSelection(event) {
 function displayPlaylist() {
     playlist.innerHTML = '';
     
-    currentTracks.forEach((track, index) => {
+    // Sort tracks by last played date (most recent first)
+    const sortedTracks = [...currentTracks].sort((a, b) => {
+        const progressA = getTrackProgress(a.name);
+        const progressB = getTrackProgress(b.name);
+        
+        const lastPlayedA = progressA?.lastPlayed || 0;
+        const lastPlayedB = progressB?.lastPlayed || 0;
+        
+        return lastPlayedB - lastPlayedA; // Most recent first
+    });
+    
+    sortedTracks.forEach((track, sortedIndex) => {
+        // Find original index for playTrack function
+        const originalIndex = currentTracks.findIndex(t => t.id === track.id);
+        
         const trackElement = document.createElement('div');
         trackElement.className = 'track-item';
-        trackElement.onclick = () => playTrack(index);
+        trackElement.onclick = () => playTrack(originalIndex);
         
         // Get stored progress for this track
         const progressData = getTrackProgress(track.name);
@@ -109,6 +123,9 @@ function playTrack(index) {
     
     currentTrackIndex = index;
     const track = currentTracks[index];
+    
+    // Update last played date
+    updateLastPlayedDate(track.name);
     
     // Update UI
     currentTrackTitle.textContent = track.name;
@@ -163,9 +180,11 @@ function togglePlayPause() {
             const duration = audioPlayer.duration;
             const timeToSave = (duration - currentTime < 30) ? 0 : currentTime;
             
+            const existingData = getTrackProgress(track.name) || {};
             const progressData = {
                 duration: duration,
-                currentTime: timeToSave
+                currentTime: timeToSave,
+                lastPlayed: existingData.lastPlayed || Date.now() // Preserve existing lastPlayed
             };
             saveTrackProgress(track.name, progressData);
         }
@@ -257,6 +276,7 @@ function updateDuration() {
         if (track) {
             const progressData = getTrackProgress(track.name) || {};
             progressData.duration = audioPlayer.duration;
+            // Don't overwrite lastPlayed here, only when actually starting playback
             saveTrackProgress(track.name, progressData);
         }
     }
@@ -282,9 +302,11 @@ function handleTrackEnd() {
     // Save progress as completed (reset to 0)
     const track = currentTracks[currentTrackIndex];
     if (track && audioPlayer.duration) {
+        const existingData = getTrackProgress(track.name) || {};
         const progressData = {
             duration: audioPlayer.duration,
-            currentTime: 0
+            currentTime: 0,
+            lastPlayed: existingData.lastPlayed || Date.now() // Preserve existing lastPlayed
         };
         saveTrackProgress(track.name, progressData);
     }
@@ -459,9 +481,11 @@ function startProgressTracking(fileName) {
             // Reset current time to 0 if within 1 minute of the end
             const timeToSave = (duration - currentTime < 60) ? 0 : currentTime;
             
+            const existingData = getTrackProgress(fileName) || {};
             const progressData = {
                 duration: duration,
-                currentTime: timeToSave
+                currentTime: timeToSave,
+                lastPlayed: existingData.lastPlayed || Date.now() // Preserve existing lastPlayed
             };
             
             saveTrackProgress(fileName, progressData);
@@ -474,4 +498,10 @@ function stopProgressTracking() {
         clearInterval(progressUpdateInterval);
         progressUpdateInterval = null;
     }
+}
+
+function updateLastPlayedDate(fileName) {
+    const existingData = getTrackProgress(fileName) || {};
+    existingData.lastPlayed = Date.now();
+    saveTrackProgress(fileName, existingData);
 }
