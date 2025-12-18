@@ -3,7 +3,6 @@ let currentTracks = [];
 let currentTrackIndex = 0;
 let audioPlayer = null;
 let isPlaying = false;
-let wakeLock = null;
 
 // DOM elements
 const fileInput = document.getElementById('file-input');
@@ -320,38 +319,6 @@ function updateMediaSessionState() {
                 position: audioPlayer.currentTime
             });
         }
-    }
-    
-    // Manage wake lock
-    if (isPlaying) {
-        requestWakeLock();
-    } else {
-        releaseWakeLock();
-    }
-}
-
-// Request wake lock to prevent screen from turning off
-async function requestWakeLock() {
-    if ('wakeLock' in navigator && !wakeLock) {
-        try {
-            wakeLock = await navigator.wakeLock.request('screen');
-            console.log('Wake lock acquired');
-            
-            wakeLock.addEventListener('release', () => {
-                console.log('Wake lock released');
-                wakeLock = null;
-            });
-        } catch (err) {
-            console.log('Wake lock failed:', err);
-        }
-    }
-}
-
-// Release wake lock
-function releaseWakeLock() {
-    if (wakeLock) {
-        wakeLock.release();
-        wakeLock = null;
     }
 }
 
