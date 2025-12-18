@@ -5,6 +5,7 @@ let audioPlayer = null;
 let isPlaying = false;
 let playbackRates = [1, 1.15, 1.25, 1.35];
 let currentRateIndex = 0;
+let progressUpdateInterval = null;
 
 // DOM elements
 const fileInput = document.getElementById('file-input');
@@ -76,9 +77,26 @@ function displayPlaylist() {
         trackElement.className = 'track-item';
         trackElement.onclick = () => playTrack(index);
         
+        // Get stored progress for this track
+        const progressData = getTrackProgress(track.name);
+        let durationText = '';
+        let progressPercentage = 0;
+        
+        if (progressData) {
+            const currentTimeFormatted = formatTime(progressData.currentTime);
+            const durationFormatted = formatTime(progressData.duration);
+            durationText = `${currentTimeFormatted} / ${durationFormatted}`;
+            progressPercentage = (progressData.currentTime / progressData.duration) * 100;
+        }
+        
         trackElement.innerHTML = `
             <div class="track-name">${track.name}</div>
-            <div class="track-duration">Click to play</div>
+            ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
+            <div class="track-progress">
+                <div class="track-progress-bar">
+                    <div class="track-progress-fill" style="width: ${progressPercentage}%"></div>
+                </div>
+            </div>
         `;
         
         playlist.appendChild(trackElement);
@@ -109,6 +127,19 @@ function playTrack(index) {
     // Setup Media Session API for background playback
     setupMediaSession(track);
     
+    // Start progress tracking interval
+    startProgressTracking(track.name);
+    
+    // Restore saved position when metadata is loaded
+    audioPlayer.addEventListener('loadedmetadata', function restorePosition() {
+        const progressData = getTrackProgress(track.name);
+        if (progressData && progressData.currentTime > 0) {
+            audioPlayer.currentTime = progressData.currentTime;
+        }
+        // Remove this listener after use
+        audioPlayer.removeEventListener('loadedmetadata', restorePosition);
+    });
+    
     // Try to play (may be blocked on mobile until user interaction)
     audioPlayer.play().catch(e => {
         console.log('Play blocked, waiting for user interaction:', e);
@@ -124,6 +155,20 @@ function togglePlayPause() {
     if (isPlaying) {
         audioPlayer.pause();
         isPlaying = false;
+        
+        // Save progress immediately when pausing
+        const track = currentTracks[currentTrackIndex];
+        if (track && audioPlayer.duration) {
+            const currentTime = audioPlayer.currentTime;
+            const duration = audioPlayer.duration;
+            const timeToSave = (duration - currentTime < 30) ? 0 : currentTime;
+            
+            const progressData = {
+                duration: duration,
+                currentTime: timeToSave
+            };
+            saveTrackProgress(track.name, progressData);
+        }
     } else {
         audioPlayer.play().then(() => {
             isPlaying = true;
@@ -206,6 +251,14 @@ function togglePlaybackRate() {
 function updateDuration() {
     if (audioPlayer.duration) {
         totalTimeSpan.textContent = formatTime(audioPlayer.duration);
+        
+        // Store duration in localStorage when first loaded
+        const track = currentTracks[currentTrackIndex];
+        if (track) {
+            const progressData = getTrackProgress(track.name) || {};
+            progressData.duration = audioPlayer.duration;
+            saveTrackProgress(track.name, progressData);
+        }
     }
 }
 
@@ -225,6 +278,16 @@ function updateProgress() {
 function handleTrackEnd() {
     isPlaying = false;
     updatePlayPauseButton();
+    
+    // Save progress as completed (reset to 0)
+    const track = currentTracks[currentTrackIndex];
+    if (track && audioPlayer.duration) {
+        const progressData = {
+            duration: audioPlayer.duration,
+            currentTime: 0
+        };
+        saveTrackProgress(track.name, progressData);
+    }
     
     // Auto-play next track if available
     if (currentTrackIndex < currentTracks.length - 1) {
@@ -259,11 +322,19 @@ function showHomePage() {
     playerPage.classList.remove('active');
     playerControls.style.display = 'none';
     
+    // Stop progress tracking
+    stopProgressTracking();
+    
     // Pause audio when going back
     if (isPlaying) {
         audioPlayer.pause();
         isPlaying = false;
         updatePlayPauseButton();
+    }
+    
+    // Refresh playlist to show updated progress
+    if (currentTracks.length > 0) {
+        displayPlaylist();
     }
 }
 
@@ -355,3 +426,52 @@ document.addEventListener('touchend', function(event) {
     }
     lastTouchEnd = now;
 }, false);
+
+// Local Storage Functions for Progress Tracking
+function getTrackProgress(fileName) {
+    try {
+        const stored = localStorage.getItem(fileName);
+        return stored ? JSON.parse(stored) : null;
+    } catch (e) {
+        console.error('Error reading progress from localStorage:', e);
+        return null;
+    }
+}
+
+function saveTrackProgress(fileName, progressData) {
+    try {
+        localStorage.setItem(fileName, JSON.stringify(progressData));
+    } catch (e) {
+        console.error('Error saving progress to localStorage:', e);
+    }
+}
+
+function startProgressTracking(fileName) {
+    // Clear any existing interval
+    stopProgressTracking();
+    
+    // Update progress every 30 seconds
+    progressUpdateInterval = setInterval(() => {
+        if (audioPlayer && audioPlayer.duration && !isNaN(audioPlayer.currentTime)) {
+            const currentTime = audioPlayer.currentTime;
+            const duration = audioPlayer.duration;
+            
+            // Reset current time to 0 if within 1 minute of the end
+            const timeToSave = (duration - currentTime < 60) ? 0 : currentTime;
+            
+            const progressData = {
+                duration: duration,
+                currentTime: timeToSave
+            };
+            
+            saveTrackProgress(fileName, progressData);
+        }
+    }, 30000); // 30 seconds
+}
+
+function stopProgressTracking() {
+    if (progressUpdateInterval) {
+        clearInterval(progressUpdateInterval);
+        progressUpdateInterval = null;
+    }
+}
