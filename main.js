@@ -6,6 +6,7 @@ let isPlaying = false;
 let playbackRates = [1, 1.15, 1.25, 1.35];
 let currentRateIndex = 0;
 let progressUpdateInterval = null;
+let listeningSessionStart = null;
 
 // DOM elements
 const fileInput = document.getElementById('file-input');
@@ -103,9 +104,13 @@ function displayPlaylist() {
             progressPercentage = (progressData.currentTime / progressData.duration) * 100;
         }
         
+        // Get additional stats
+        const statsText = getTrackStatsText(progressData);
+        
         trackElement.innerHTML = `
             <div class="track-name">${track.name}</div>
             ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
+            ${statsText ? `<div class="track-stats">${statsText}</div>` : ''}
             <div class="track-progress">
                 <div class="track-progress-bar">
                     <div class="track-progress-fill" style="width: ${progressPercentage}%"></div>
@@ -124,8 +129,11 @@ function playTrack(index) {
     currentTrackIndex = index;
     const track = currentTracks[index];
     
-    // Update last played date
+    // Update last played date and first listen date
     updateLastPlayedDate(track.name);
+    
+    // Start listening session tracking
+    listeningSessionStart = Date.now();
     
     // Update UI
     currentTrackTitle.textContent = track.name;
@@ -180,11 +188,16 @@ function togglePlayPause() {
             const duration = audioPlayer.duration;
             const timeToSave = (duration - currentTime < 30) ? 0 : currentTime;
             
+            // Add listening time from this session
+            addListeningTime(track.name);
+            
             const existingData = getTrackProgress(track.name) || {};
             const progressData = {
                 duration: duration,
                 currentTime: timeToSave,
-                lastPlayed: existingData.lastPlayed || Date.now() // Preserve existing lastPlayed
+                lastPlayed: existingData.lastPlayed || Date.now(),
+                firstListened: existingData.firstListened,
+                totalListeningTime: existingData.totalListeningTime || 0
             };
             saveTrackProgress(track.name, progressData);
         }
@@ -302,11 +315,16 @@ function handleTrackEnd() {
     // Save progress as completed (reset to 0)
     const track = currentTracks[currentTrackIndex];
     if (track && audioPlayer.duration) {
+        // Add listening time from this session
+        addListeningTime(track.name);
+        
         const existingData = getTrackProgress(track.name) || {};
         const progressData = {
             duration: audioPlayer.duration,
             currentTime: 0,
-            lastPlayed: existingData.lastPlayed || Date.now() // Preserve existing lastPlayed
+            lastPlayed: existingData.lastPlayed || Date.now(),
+            firstListened: existingData.firstListened,
+            totalListeningTime: existingData.totalListeningTime || 0
         };
         saveTrackProgress(track.name, progressData);
     }
@@ -344,8 +362,13 @@ function showHomePage() {
     playerPage.classList.remove('active');
     playerControls.style.display = 'none';
     
-    // Stop progress tracking
+    // Stop progress tracking and add listening time
     stopProgressTracking();
+    
+    // Add listening time from current session if playing
+    if (isPlaying && currentTracks[currentTrackIndex]) {
+        addListeningTime(currentTracks[currentTrackIndex].name);
+    }
     
     // Pause audio when going back
     if (isPlaying) {
@@ -485,7 +508,9 @@ function startProgressTracking(fileName) {
             const progressData = {
                 duration: duration,
                 currentTime: timeToSave,
-                lastPlayed: existingData.lastPlayed || Date.now() // Preserve existing lastPlayed
+                lastPlayed: existingData.lastPlayed || Date.now(),
+                firstListened: existingData.firstListened,
+                totalListeningTime: existingData.totalListeningTime || 0
             };
             
             saveTrackProgress(fileName, progressData);
@@ -502,6 +527,77 @@ function stopProgressTracking() {
 
 function updateLastPlayedDate(fileName) {
     const existingData = getTrackProgress(fileName) || {};
-    existingData.lastPlayed = Date.now();
+    const now = Date.now();
+    
+    existingData.lastPlayed = now;
+    
+    // Set first listened date if not already set
+    if (!existingData.firstListened) {
+        existingData.firstListened = now;
+    }
+    
+    // Initialize total listening time if not set
+    if (!existingData.totalListeningTime) {
+        existingData.totalListeningTime = 0;
+    }
+    
     saveTrackProgress(fileName, existingData);
+}
+
+function addListeningTime(fileName) {
+    if (!listeningSessionStart) return;
+    
+    const sessionDuration = (Date.now() - listeningSessionStart) / 1000; // Convert to seconds
+    const existingData = getTrackProgress(fileName) || {};
+    
+    existingData.totalListeningTime = (existingData.totalListeningTime || 0) + sessionDuration;
+    saveTrackProgress(fileName, existingData);
+    
+    // Reset session start
+    listeningSessionStart = Date.now();
+}
+
+function getTrackStatsText(progressData) {
+    if (!progressData || !progressData.firstListened) {
+        return '';
+    }
+    
+    const timeSinceFirst = getTimeSinceFirst(progressData.firstListened);
+    const totalHours = formatTotalListeningTime(progressData.totalListeningTime || 0);
+    
+    return `First: ${timeSinceFirst} • Total: ${totalHours}`;
+}
+
+function getTimeSinceFirst(firstListenedTimestamp) {
+    const now = Date.now();
+    const diffMs = now - firstListenedTimestamp;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 1) {
+        return 'today';
+    } else if (diffDays < 7) {
+        return `${diffDays}d ago`;
+    } else if (diffDays < 30) {
+        const weeks = Math.floor(diffDays / 7);
+        return `${weeks}w ago`;
+    } else if (diffDays < 365) {
+        const months = Math.floor(diffDays / 30);
+        return `${months}mo ago`;
+    } else {
+        const years = Math.floor(diffDays / 365);
+        return `${years}y ago`;
+    }
+}
+
+function formatTotalListeningTime(totalSeconds) {
+    const hours = totalSeconds / 3600;
+    
+    if (hours < 1) {
+        const minutes = Math.floor(totalSeconds / 60);
+        return `${minutes}m`;
+    } else if (hours < 10) {
+        return `${hours.toFixed(1)}h`;
+    } else {
+        return `${Math.floor(hours)}h`;
+    }
 }
