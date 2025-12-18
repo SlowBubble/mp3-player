@@ -3,6 +3,8 @@ let currentTracks = [];
 let currentTrackIndex = 0;
 let audioPlayer = null;
 let isPlaying = false;
+let playbackRates = [1, 1.15, 1.25, 1.35];
+let currentRateIndex = 0;
 
 // DOM elements
 const fileInput = document.getElementById('file-input');
@@ -155,6 +157,51 @@ function forward15() {
     }
 }
 
+// Rewind 5 minutes
+function rewind5min() {
+    if (audioPlayer.src) {
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 300);
+    }
+}
+
+// Forward 5 minutes
+function forward5min() {
+    if (audioPlayer.src) {
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 300);
+    }
+}
+
+// Previous track
+function previousTrack() {
+    if (currentTrackIndex > 0) {
+        playTrack(currentTrackIndex - 1);
+    }
+}
+
+// Next track
+function nextTrack() {
+    if (currentTrackIndex < currentTracks.length - 1) {
+        playTrack(currentTrackIndex + 1);
+    }
+}
+
+// Toggle playback rate
+function togglePlaybackRate() {
+    if (!audioPlayer.src) return;
+    
+    currentRateIndex = (currentRateIndex + 1) % playbackRates.length;
+    const newRate = playbackRates[currentRateIndex];
+    
+    audioPlayer.playbackRate = newRate;
+    
+    // Update button text
+    const rateBtn = document.getElementById('playback-rate-btn');
+    rateBtn.textContent = newRate + 'x';
+    
+    // Update Media Session if available
+    updateMediaSessionState();
+}
+
 // Update duration display
 function updateDuration() {
     if (audioPlayer.duration) {
@@ -264,15 +311,11 @@ function setupMediaSession(track) {
         });
 
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            if (currentTrackIndex > 0) {
-                playTrack(currentTrackIndex - 1);
-            }
+            previousTrack();
         });
 
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            if (currentTrackIndex < currentTracks.length - 1) {
-                playTrack(currentTrackIndex + 1);
-            }
+            nextTrack();
         });
 
         // Update playback state
