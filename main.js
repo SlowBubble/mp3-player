@@ -73,6 +73,15 @@ function handleFileSelection(event) {
 function displayPlaylist() {
     playlist.innerHTML = '';
     
+    // Find the longest file duration for proportional progress bars
+    let longestDuration = 0;
+    currentTracks.forEach(track => {
+        const progressData = getTrackProgress(track.name);
+        if (progressData && progressData.duration > longestDuration) {
+            longestDuration = progressData.duration;
+        }
+    });
+    
     // Sort tracks by last played date (most recent first)
     const sortedTracks = [...currentTracks].sort((a, b) => {
         const progressA = getTrackProgress(a.name);
@@ -84,7 +93,7 @@ function displayPlaylist() {
         return lastPlayedB - lastPlayedA; // Most recent first
     });
     
-    sortedTracks.forEach((track, sortedIndex) => {
+    sortedTracks.forEach((track) => {
         // Find original index for playTrack function
         const originalIndex = currentTracks.findIndex(t => t.id === track.id);
         
@@ -96,12 +105,18 @@ function displayPlaylist() {
         const progressData = getTrackProgress(track.name);
         let durationText = '';
         let progressPercentage = 0;
+        let progressBarWidth = 100; // Default full width
         
         if (progressData) {
             const currentTimeFormatted = formatTime(progressData.currentTime);
             const durationFormatted = formatTime(progressData.duration);
             durationText = `${currentTimeFormatted} / ${durationFormatted}`;
             progressPercentage = (progressData.currentTime / progressData.duration) * 100;
+            
+            // Calculate proportional width based on longest file
+            if (longestDuration > 0) {
+                progressBarWidth = (progressData.duration / longestDuration) * 100;
+            }
         }
         
         // Get additional stats
@@ -112,7 +127,7 @@ function displayPlaylist() {
             ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
             ${statsText ? `<div class="track-stats">${statsText}</div>` : ''}
             <div class="track-progress">
-                <div class="track-progress-bar">
+                <div class="track-progress-bar" style="width: ${progressBarWidth}%">
                     <div class="track-progress-fill" style="width: ${progressPercentage}%"></div>
                 </div>
             </div>
@@ -347,13 +362,19 @@ function seekToPosition(event) {
     audioPlayer.currentTime = newTime;
 }
 
-// Format time (seconds to mm:ss)
+// Format time (seconds to hh:mm:ss or mm:ss)
 function formatTime(seconds) {
     if (isNaN(seconds)) return '0:00';
     
-    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    
+    if (hours > 0) {
+        return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    } else {
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
 }
 
 // Show home page

@@ -17,3 +17,9 @@
   - 5 min --> 1 min
   - Prev/Next track --> 20 min
 
+# m1c
+- In the home page,
+  - Change the display of the progress
+    - Express time in hours:minutes:seconds
+    - Make the progress bar's total length and progress length to be proporational to the longest file's total length if available.
+
