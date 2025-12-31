@@ -220,45 +220,45 @@ function updatePlayPauseButton() {
     playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
 }
 
-// Rewind 15 seconds
+// Rewind 5 seconds
 function rewind15() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 15);
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 5);
     }
 }
 
-// Forward 15 seconds
+// Forward 5 seconds
 function forward15() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 15);
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 5);
     }
 }
 
-// Rewind 5 minutes
+// Rewind 1 minute
 function rewind5min() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 300);
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 60);
     }
 }
 
-// Forward 5 minutes
+// Forward 1 minute
 function forward5min() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 300);
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 60);
     }
 }
 
-// Previous track
+// Rewind 20 minutes
 function previousTrack() {
-    if (currentTrackIndex > 0) {
-        playTrack(currentTrackIndex - 1);
+    if (audioPlayer.src) {
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 1200);
     }
 }
 
-// Next track
+// Forward 20 minutes
 function nextTrack() {
-    if (currentTrackIndex < currentTracks.length - 1) {
-        playTrack(currentTrackIndex + 1);
+    if (audioPlayer.src) {
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 1200);
     }
 }
 
@@ -417,12 +417,12 @@ function setupMediaSession(track) {
         });
 
         navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-            const skipTime = details.seekOffset || 15;
+            const skipTime = details.seekOffset || 5;
             audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - skipTime);
         });
 
         navigator.mediaSession.setActionHandler('seekforward', (details) => {
-            const skipTime = details.seekOffset || 15;
+            const skipTime = details.seekOffset || 5;
             audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + skipTime);
         });
 

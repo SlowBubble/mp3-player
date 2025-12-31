@@ -10,3 +10,10 @@
   - Have a rewind 15 seconds button
   - Have a fast-forward 15 seconds button
   - Have a button to go back to the home page.
+
+# m1b
+- Change the rewind and fast forward buttons to the following
+  - 15 secs --> 5 secs
+  - 5 min --> 1 min
+  - Prev/Next track --> 20 min
+
