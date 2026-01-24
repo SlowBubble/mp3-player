@@ -93,7 +93,13 @@ function displayPlaylist() {
         return lastPlayedB - lastPlayedA; // Most recent first
     });
 
+    // Get hidden tracks
+    const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
+
     sortedTracks.forEach((track) => {
+        // Skip if track is hidden
+        if (hiddenTracks.includes(track.name)) return;
+
         // Find original index for playTrack function
         const originalIndex = currentTracks.findIndex(t => t.id === track.id);
 
@@ -123,6 +129,7 @@ function displayPlaylist() {
         const statsText = getTrackStatsText(progressData);
 
         trackElement.innerHTML = `
+            <button class="remove-track-btn" onclick="hideTrack(event, '${track.name}')" title="Remove from list">✕</button>
             <div class="track-name">${track.name}</div>
             ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
             ${statsText ? `<div class="track-stats">${statsText}</div>` : ''}
@@ -607,4 +614,16 @@ function formatTotalListeningTime(totalSeconds) {
     } else {
         return `${Math.floor(hours)}h`;
     }
+}
+
+function hideTrack(event, fileName) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
+    if (!hiddenTracks.includes(fileName)) {
+        hiddenTracks.push(fileName);
+        localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
+    }
+    displayPlaylist();
 }
