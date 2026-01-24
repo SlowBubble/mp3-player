@@ -127,9 +127,10 @@ function displayPlaylist() {
 
         const statsText = getTrackStatsText(progressData);
 
+        const safeName = track.name.replace(/'/g, "\\'");
         const btnHtml = showingHiddenView
-            ? `<button class="remove-track-btn restore-track-btn" style="background: rgba(74, 222, 128, 0.2);" onclick="unhideTrack(event, '${track.name}')" title="Restore to list">↺</button>`
-            : `<button class="remove-track-btn" onclick="hideTrack(event, '${track.name}')" title="Remove from list">✕</button>`;
+            ? `<button class="remove-track-btn restore-track-btn" style="background: rgba(74, 222, 128, 0.2);" onclick="unhideTrack(event, '${safeName}')" title="Restore to list">↺</button>`
+            : `<button class="remove-track-btn" onclick="hideTrack(event, '${safeName}')" title="Remove from list">✕</button>`;
 
         trackElement.innerHTML = `
             <div class="track-item" onclick="playTrack(${originalIndex})">
