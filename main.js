@@ -23,7 +23,7 @@ const totalTimeSpan = document.getElementById('total-time');
 const progressBar = document.getElementById('progress-bar');
 
 // Initialize the app
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     audioPlayer = document.getElementById('audio-player');
     setupEventListeners();
 });
@@ -32,18 +32,18 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupEventListeners() {
     // File input change
     fileInput.addEventListener('change', handleFileSelection);
-    
+
     // Audio player events
     audioPlayer.addEventListener('loadedmetadata', updateDuration);
     audioPlayer.addEventListener('timeupdate', updateProgress);
     audioPlayer.addEventListener('ended', handleTrackEnd);
-    audioPlayer.addEventListener('canplay', function() {
+    audioPlayer.addEventListener('canplay', function () {
         // Auto-play when track is ready (mobile browsers may block this)
         if (isPlaying) {
             audioPlayer.play().catch(e => console.log('Auto-play blocked:', e));
         }
     });
-    
+
     // Progress bar click
     progressBar.addEventListener('click', seekToPosition);
 }
@@ -52,19 +52,19 @@ function setupEventListeners() {
 function handleFileSelection(event) {
     const files = Array.from(event.target.files);
     const mp3Files = files.filter(file => file.type === 'audio/mpeg' || file.name.toLowerCase().endsWith('.mp3'));
-    
+
     if (mp3Files.length === 0) {
         alert('No MP3 files found in the selected folder.');
         return;
     }
-    
+
     currentTracks = mp3Files.map((file, index) => ({
         id: index,
         name: file.name.replace('.mp3', ''),
         file: file,
         url: URL.createObjectURL(file)
     }));
-    
+
     displayPlaylist();
     emptyState.style.display = 'none';
 }
@@ -72,7 +72,7 @@ function handleFileSelection(event) {
 // Display playlist
 function displayPlaylist() {
     playlist.innerHTML = '';
-    
+
     // Find the longest file duration for proportional progress bars
     let longestDuration = 0;
     currentTracks.forEach(track => {
@@ -81,47 +81,47 @@ function displayPlaylist() {
             longestDuration = progressData.duration;
         }
     });
-    
+
     // Sort tracks by last played date (most recent first)
     const sortedTracks = [...currentTracks].sort((a, b) => {
         const progressA = getTrackProgress(a.name);
         const progressB = getTrackProgress(b.name);
-        
+
         const lastPlayedA = progressA?.lastPlayed || 0;
         const lastPlayedB = progressB?.lastPlayed || 0;
-        
+
         return lastPlayedB - lastPlayedA; // Most recent first
     });
-    
+
     sortedTracks.forEach((track) => {
         // Find original index for playTrack function
         const originalIndex = currentTracks.findIndex(t => t.id === track.id);
-        
+
         const trackElement = document.createElement('div');
         trackElement.className = 'track-item';
         trackElement.onclick = () => playTrack(originalIndex);
-        
+
         // Get stored progress for this track
         const progressData = getTrackProgress(track.name);
         let durationText = '';
         let progressPercentage = 0;
         let progressBarWidth = 100; // Default full width
-        
+
         if (progressData) {
             const currentTimeFormatted = formatTime(progressData.currentTime);
             const durationFormatted = formatTime(progressData.duration);
             durationText = `${currentTimeFormatted} / ${durationFormatted}`;
             progressPercentage = (progressData.currentTime / progressData.duration) * 100;
-            
+
             // Calculate proportional width based on longest file
             if (longestDuration > 0) {
                 progressBarWidth = (progressData.duration / longestDuration) * 100;
             }
         }
-        
+
         // Get additional stats
         const statsText = getTrackStatsText(progressData);
-        
+
         trackElement.innerHTML = `
             <div class="track-name">${track.name}</div>
             ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
@@ -132,7 +132,7 @@ function displayPlaylist() {
                 </div>
             </div>
         `;
-        
+
         playlist.appendChild(trackElement);
     });
 }
@@ -140,36 +140,36 @@ function displayPlaylist() {
 // Play a specific track
 function playTrack(index) {
     if (index < 0 || index >= currentTracks.length) return;
-    
+
     currentTrackIndex = index;
     const track = currentTracks[index];
-    
+
     // Update last played date and first listen date
     updateLastPlayedDate(track.name);
-    
+
     // Start listening session tracking
     listeningSessionStart = Date.now();
-    
+
     // Update UI
     currentTrackTitle.textContent = track.name;
-    
+
     // Load and play audio
     audioPlayer.src = track.url;
     audioPlayer.load();
-    
+
     // Show player page
     showPlayerPage();
-    
+
     // Start playing
     isPlaying = true;
     updatePlayPauseButton();
-    
+
     // Setup Media Session API for background playback
     setupMediaSession(track);
-    
+
     // Start progress tracking interval
     startProgressTracking(track.name);
-    
+
     // Restore saved position when metadata is loaded
     audioPlayer.addEventListener('loadedmetadata', function restorePosition() {
         const progressData = getTrackProgress(track.name);
@@ -179,7 +179,7 @@ function playTrack(index) {
         // Remove this listener after use
         audioPlayer.removeEventListener('loadedmetadata', restorePosition);
     });
-    
+
     // Try to play (may be blocked on mobile until user interaction)
     audioPlayer.play().catch(e => {
         console.log('Play blocked, waiting for user interaction:', e);
@@ -191,21 +191,21 @@ function playTrack(index) {
 // Toggle play/pause
 function togglePlayPause() {
     if (!audioPlayer.src) return;
-    
+
     if (isPlaying) {
         audioPlayer.pause();
         isPlaying = false;
-        
+
         // Save progress immediately when pausing
         const track = currentTracks[currentTrackIndex];
         if (track && audioPlayer.duration) {
             const currentTime = audioPlayer.currentTime;
             const duration = audioPlayer.duration;
             const timeToSave = (duration - currentTime < 30) ? 0 : currentTime;
-            
+
             // Add listening time from this session
             addListeningTime(track.name);
-            
+
             const existingData = getTrackProgress(track.name) || {};
             const progressData = {
                 duration: duration,
@@ -224,7 +224,7 @@ function togglePlayPause() {
             isPlaying = false;
         });
     }
-    
+
     updatePlayPauseButton();
     updateMediaSessionState();
 }
@@ -235,61 +235,47 @@ function updatePlayPauseButton() {
     playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
 }
 
-// Rewind 5 seconds
-function rewind15() {
+// Rewind 9 seconds
+function rewind9() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 5);
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 9);
     }
 }
 
-// Forward 5 seconds
-function forward15() {
+// Forward 9 seconds
+function forward9() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 5);
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 9);
     }
 }
 
-// Rewind 1 minute
-function rewind5min() {
+// Rewind 45 seconds
+function rewind45() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 60);
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 45);
     }
 }
 
-// Forward 1 minute
-function forward5min() {
+// Forward 45 seconds
+function forward45() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 60);
-    }
-}
-
-// Rewind 20 minutes
-function previousTrack() {
-    if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 1200);
-    }
-}
-
-// Forward 20 minutes
-function nextTrack() {
-    if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 1200);
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 45);
     }
 }
 
 // Toggle playback rate
 function togglePlaybackRate() {
     if (!audioPlayer.src) return;
-    
+
     currentRateIndex = (currentRateIndex + 1) % playbackRates.length;
     const newRate = playbackRates[currentRateIndex];
-    
+
     audioPlayer.playbackRate = newRate;
-    
+
     // Update button text
     const rateBtn = document.getElementById('playback-rate-btn');
     rateBtn.textContent = newRate + 'x';
-    
+
     // Update Media Session if available
     updateMediaSessionState();
 }
@@ -298,7 +284,7 @@ function togglePlaybackRate() {
 function updateDuration() {
     if (audioPlayer.duration) {
         totalTimeSpan.textContent = formatTime(audioPlayer.duration);
-        
+
         // Store duration in localStorage when first loaded
         const track = currentTracks[currentTrackIndex];
         if (track) {
@@ -316,7 +302,7 @@ function updateProgress() {
         const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
         progressFill.style.width = progress + '%';
         currentTimeSpan.textContent = formatTime(audioPlayer.currentTime);
-        
+
         // Update Media Session position periodically
         updateMediaSessionState();
     }
@@ -326,13 +312,13 @@ function updateProgress() {
 function handleTrackEnd() {
     isPlaying = false;
     updatePlayPauseButton();
-    
+
     // Save progress as completed (reset to 0)
     const track = currentTracks[currentTrackIndex];
     if (track && audioPlayer.duration) {
         // Add listening time from this session
         addListeningTime(track.name);
-        
+
         const existingData = getTrackProgress(track.name) || {};
         const progressData = {
             duration: audioPlayer.duration,
@@ -343,7 +329,7 @@ function handleTrackEnd() {
         };
         saveTrackProgress(track.name, progressData);
     }
-    
+
     // Auto-play next track if available
     if (currentTrackIndex < currentTracks.length - 1) {
         playTrack(currentTrackIndex + 1);
@@ -353,23 +339,23 @@ function handleTrackEnd() {
 // Seek to position
 function seekToPosition(event) {
     if (!audioPlayer.duration) return;
-    
+
     const rect = progressBar.getBoundingClientRect();
     const clickX = event.clientX - rect.left;
     const percentage = clickX / rect.width;
     const newTime = percentage * audioPlayer.duration;
-    
+
     audioPlayer.currentTime = newTime;
 }
 
 // Format time (seconds to hh:mm:ss or mm:ss)
 function formatTime(seconds) {
     if (isNaN(seconds)) return '0:00';
-    
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = Math.floor(seconds % 60);
-    
+
     if (hours > 0) {
         return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     } else {
@@ -382,22 +368,22 @@ function showHomePage() {
     homePage.classList.add('active');
     playerPage.classList.remove('active');
     playerControls.style.display = 'none';
-    
+
     // Stop progress tracking and add listening time
     stopProgressTracking();
-    
+
     // Add listening time from current session if playing
     if (isPlaying && currentTracks[currentTrackIndex]) {
         addListeningTime(currentTracks[currentTrackIndex].name);
     }
-    
+
     // Pause audio when going back
     if (isPlaying) {
         audioPlayer.pause();
         isPlaying = false;
         updatePlayPauseButton();
     }
-    
+
     // Refresh playlist to show updated progress
     if (currentTracks.length > 0) {
         displayPlaylist();
@@ -438,21 +424,21 @@ function setupMediaSession(track) {
         });
 
         navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-            const skipTime = details.seekOffset || 5;
+            const skipTime = details.seekOffset || 9;
             audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - skipTime);
         });
 
         navigator.mediaSession.setActionHandler('seekforward', (details) => {
-            const skipTime = details.seekOffset || 5;
+            const skipTime = details.seekOffset || 9;
             audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + skipTime);
         });
 
         navigator.mediaSession.setActionHandler('previoustrack', () => {
-            previousTrack();
+            rewind45();
         });
 
         navigator.mediaSession.setActionHandler('nexttrack', () => {
-            nextTrack();
+            forward45();
         });
 
         // Update playback state
@@ -464,7 +450,7 @@ function setupMediaSession(track) {
 function updateMediaSessionState() {
     if ('mediaSession' in navigator) {
         navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
-        
+
         // Update position state for better scrubbing support
         if (audioPlayer.duration) {
             navigator.mediaSession.setPositionState({
@@ -477,7 +463,7 @@ function updateMediaSessionState() {
 }
 
 // Handle mobile-specific behaviors
-document.addEventListener('visibilitychange', function() {
+document.addEventListener('visibilitychange', function () {
     // Don't pause when tab becomes hidden - let Media Session API handle it
     // This allows background playback on mobile
     console.log('Visibility changed:', document.hidden ? 'hidden' : 'visible');
@@ -485,7 +471,7 @@ document.addEventListener('visibilitychange', function() {
 
 // Prevent zoom on double tap for better mobile experience
 let lastTouchEnd = 0;
-document.addEventListener('touchend', function(event) {
+document.addEventListener('touchend', function (event) {
     const now = (new Date()).getTime();
     if (now - lastTouchEnd <= 300) {
         event.preventDefault();
@@ -515,16 +501,16 @@ function saveTrackProgress(fileName, progressData) {
 function startProgressTracking(fileName) {
     // Clear any existing interval
     stopProgressTracking();
-    
+
     // Update progress every 30 seconds
     progressUpdateInterval = setInterval(() => {
         if (audioPlayer && audioPlayer.duration && !isNaN(audioPlayer.currentTime)) {
             const currentTime = audioPlayer.currentTime;
             const duration = audioPlayer.duration;
-            
+
             // Reset current time to 0 if within 1 minute of the end
             const timeToSave = (duration - currentTime < 60) ? 0 : currentTime;
-            
+
             const existingData = getTrackProgress(fileName) || {};
             const progressData = {
                 duration: duration,
@@ -533,7 +519,7 @@ function startProgressTracking(fileName) {
                 firstListened: existingData.firstListened,
                 totalListeningTime: existingData.totalListeningTime || 0
             };
-            
+
             saveTrackProgress(fileName, progressData);
         }
     }, 30000); // 30 seconds
@@ -549,31 +535,31 @@ function stopProgressTracking() {
 function updateLastPlayedDate(fileName) {
     const existingData = getTrackProgress(fileName) || {};
     const now = Date.now();
-    
+
     existingData.lastPlayed = now;
-    
+
     // Set first listened date if not already set
     if (!existingData.firstListened) {
         existingData.firstListened = now;
     }
-    
+
     // Initialize total listening time if not set
     if (!existingData.totalListeningTime) {
         existingData.totalListeningTime = 0;
     }
-    
+
     saveTrackProgress(fileName, existingData);
 }
 
 function addListeningTime(fileName) {
     if (!listeningSessionStart) return;
-    
+
     const sessionDuration = (Date.now() - listeningSessionStart) / 1000; // Convert to seconds
     const existingData = getTrackProgress(fileName) || {};
-    
+
     existingData.totalListeningTime = (existingData.totalListeningTime || 0) + sessionDuration;
     saveTrackProgress(fileName, existingData);
-    
+
     // Reset session start
     listeningSessionStart = Date.now();
 }
@@ -582,10 +568,10 @@ function getTrackStatsText(progressData) {
     if (!progressData || !progressData.firstListened) {
         return '';
     }
-    
+
     const timeSinceFirst = getTimeSinceFirst(progressData.firstListened);
     const totalHours = formatTotalListeningTime(progressData.totalListeningTime || 0);
-    
+
     return `First: ${timeSinceFirst} • Total: ${totalHours}`;
 }
 
@@ -593,7 +579,7 @@ function getTimeSinceFirst(firstListenedTimestamp) {
     const now = Date.now();
     const diffMs = now - firstListenedTimestamp;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays < 1) {
         return 'today';
     } else if (diffDays < 7) {
@@ -612,7 +598,7 @@ function getTimeSinceFirst(firstListenedTimestamp) {
 
 function formatTotalListeningTime(totalSeconds) {
     const hours = totalSeconds / 3600;
-    
+
     if (hours < 1) {
         const minutes = Math.floor(totalSeconds / 60);
         return `${minutes}m`;

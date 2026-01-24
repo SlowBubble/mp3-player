@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -61,7 +62,8 @@
             backdrop-filter: blur(10px);
         }
 
-        .btn:hover, .btn:active {
+        .btn:hover,
+        .btn:active {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
         }
@@ -202,7 +204,8 @@
             font-size: 36px;
         }
 
-        .control-btn:hover, .control-btn:active {
+        .control-btn:hover,
+        .control-btn:active {
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.05);
         }
@@ -241,6 +244,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Home Page -->
@@ -249,14 +253,14 @@
                 <h1>🎵 MP3 Player</h1>
                 <p>Select a folder to load your music</p>
             </div>
-            
+
             <input type="file" id="file-input" class="file-input" webkitdirectory multiple accept="audio/mp3">
             <button class="btn" onclick="document.getElementById('file-input').click()">
                 📁 Select Music Folder
             </button>
-            
+
             <div id="playlist" class="playlist"></div>
-            
+
             <div id="empty-state" class="empty-state">
                 <p>No music loaded yet</p>
                 <p>Tap the button above to get started!</p>
@@ -266,11 +270,11 @@
         <!-- Player Page -->
         <div id="player-page" class="page">
             <button class="back-btn" onclick="showHomePage()">←</button>
-            
+
             <div class="header">
                 <h1>Now Playing</h1>
             </div>
-            
+
             <audio id="audio-player" preload="metadata"></audio>
         </div>
     </div>
@@ -280,7 +284,7 @@
         <div class="now-playing">
             <div class="track-title" id="current-track-title">Select a track</div>
         </div>
-        
+
         <div class="progress-container">
             <div class="progress-bar" id="progress-bar">
                 <div class="progress-fill" id="progress-fill"></div>
@@ -290,24 +294,49 @@
                 <span id="total-time">0:00</span>
             </div>
         </div>
-        
+
         <div class="control-buttons">
-            <button class="control-btn small" onclick="previousTrack()" title="Rewind 20 min">⏮️</button>
-            <button class="control-btn" onclick="rewind15()" title="Rewind 5s">⏪</button>
-            <button class="control-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶️</button>
-            <button class="control-btn" onclick="forward15()" title="Forward 5s">⏩</button>
-            <button class="control-btn small" onclick="nextTrack()" title="Forward 20 min">⏭️</button>
+            <button class="control-btn small" onclick="rewind45()" title="Rewind 45s">
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">
+                    <span style="font-size: 10px; font-weight: bold;">45</span>
+                    <span style="font-size: 16px;">⏪</span>
+                </div>
+            </button>
+            <button class="control-btn" onclick="rewind9()" title="Rewind 9s">
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">
+                    <span style="font-size: 12px; font-weight: bold;">9</span>
+                    <span style="font-size: 20px;">⏪</span>
+                </div>
+            </button>
+            <button class="control-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()"
+                title="Play/Pause">▶️</button>
+            <button class="control-btn" onclick="forward9()" title="Forward 9s">
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">
+                    <span style="font-size: 12px; font-weight: bold;">9</span>
+                    <span style="font-size: 20px;">⏩</span>
+                </div>
+            </button>
+            <button class="control-btn small" onclick="forward45()" title="Forward 45s">
+                <div
+                    style="display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2;">
+                    <span style="font-size: 10px; font-weight: bold;">45</span>
+                    <span style="font-size: 16px;">⏩</span>
+                </div>
+            </button>
         </div>
-        
+
         <div class="secondary-controls">
-            <button class="control-btn small" onclick="rewind5min()" title="Rewind 1 min">⏪1m</button>
-            <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()" title="Playback Speed">1x</button>
-            <button class="control-btn small" onclick="forward5min()" title="Forward 1 min">1m⏩</button>
+            <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()"
+                title="Playback Speed">1x</button>
         </div>
-        
+
         <button class="btn" onclick="showHomePage()">🏠 Back to Playlist</button>
     </div>
 
     <script src="main.js"></script>
 </body>
+
 </html>
