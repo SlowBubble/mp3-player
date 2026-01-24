@@ -107,14 +107,12 @@ function displayPlaylist() {
         const originalIndex = currentTracks.findIndex(t => t.id === track.id);
 
         const trackElement = document.createElement('div');
-        trackElement.className = 'track-item';
-        trackElement.onclick = () => playTrack(originalIndex);
+        trackElement.className = 'track-wrapper';
 
-        // Get stored progress for this track
         const progressData = getTrackProgress(track.name);
         let durationText = '';
         let progressPercentage = 0;
-        let progressBarWidth = 100; // Default full width
+        let progressBarWidth = 100;
 
         if (progressData) {
             const currentTimeFormatted = formatTime(progressData.currentTime);
@@ -122,13 +120,11 @@ function displayPlaylist() {
             durationText = `${currentTimeFormatted} / ${durationFormatted}`;
             progressPercentage = (progressData.currentTime / progressData.duration) * 100;
 
-            // Calculate proportional width based on longest file
             if (longestDuration > 0) {
                 progressBarWidth = (progressData.duration / longestDuration) * 100;
             }
         }
 
-        // Get additional stats
         const statsText = getTrackStatsText(progressData);
 
         const btnHtml = showingHiddenView
@@ -136,15 +132,17 @@ function displayPlaylist() {
             : `<button class="remove-track-btn" onclick="hideTrack(event, '${track.name}')" title="Remove from list">✕</button>`;
 
         trackElement.innerHTML = `
-            ${btnHtml}
-            <div class="track-name">${track.name}</div>
-            ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
-            ${statsText ? `<div class="track-stats">${statsText}</div>` : ''}
-            <div class="track-progress">
-                <div class="track-progress-bar" style="width: ${progressBarWidth}%">
-                    <div class="track-progress-fill" style="width: ${progressPercentage}%"></div>
+            <div class="track-item" onclick="playTrack(${originalIndex})">
+                <div class="track-name" title="${track.name}">${track.name}</div>
+                ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
+                ${statsText ? `<div class="track-stats">${statsText}</div>` : ''}
+                <div class="track-progress">
+                    <div class="track-progress-bar" style="width: ${progressBarWidth}%">
+                        <div class="track-progress-fill" style="width: ${progressPercentage}%"></div>
+                    </div>
                 </div>
             </div>
+            ${btnHtml}
         `;
 
         playlist.appendChild(trackElement);

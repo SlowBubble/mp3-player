@@ -76,27 +76,36 @@
             margin-top: 20px;
         }
 
+        .track-wrapper {
+            display: flex;
+            align-items: stretch;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
         .track-item {
+            flex: 1;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
             padding: 15px;
-            padding-right: 60px;
-            margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
-            position: relative;
             overflow: hidden;
+            min-width: 0;
         }
 
         .track-item:hover {
             background: rgba(255, 255, 255, 0.2);
-            transform: translateX(5px);
+            transform: translateX(-2px);
         }
 
         .track-name {
             font-weight: 600;
             margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .track-duration {
@@ -111,14 +120,10 @@
         }
 
         .remove-track-btn {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
             width: 50px;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
             border: none;
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
             color: white;
             cursor: pointer;
             display: flex;
@@ -127,7 +132,7 @@
             font-size: 20px;
             opacity: 0.6;
             transition: all 0.2s ease;
-            z-index: 2;
+            backdrop-filter: blur(10px);
         }
 
         .remove-track-btn:hover {
