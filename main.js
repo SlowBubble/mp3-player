@@ -7,6 +7,7 @@ let playbackRates = [1, 1.15, 1.25, 1.35];
 let currentRateIndex = 0;
 let progressUpdateInterval = null;
 let listeningSessionStart = null;
+let showingHiddenView = false;
 
 // DOM elements
 const fileInput = document.getElementById('file-input');
@@ -93,12 +94,14 @@ function displayPlaylist() {
         return lastPlayedB - lastPlayedA; // Most recent first
     });
 
-    // Get hidden tracks
+    // Get hidden tracks list
     const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
 
     sortedTracks.forEach((track) => {
-        // Skip if track is hidden
-        if (hiddenTracks.includes(track.name)) return;
+        // Toggle filtering logic
+        const isHidden = hiddenTracks.includes(track.name);
+        if (showingHiddenView && !isHidden) return;
+        if (!showingHiddenView && isHidden) return;
 
         // Find original index for playTrack function
         const originalIndex = currentTracks.findIndex(t => t.id === track.id);
@@ -128,8 +131,12 @@ function displayPlaylist() {
         // Get additional stats
         const statsText = getTrackStatsText(progressData);
 
+        const btnHtml = showingHiddenView
+            ? `<button class="remove-track-btn" style="background: rgba(74, 222, 128, 0.3); opacity: 0.8;" onclick="unhideTrack(event, '${track.name}')" title="Restore to list">↺</button>`
+            : `<button class="remove-track-btn" onclick="hideTrack(event, '${track.name}')" title="Remove from list">✕</button>`;
+
         trackElement.innerHTML = `
-            <button class="remove-track-btn" onclick="hideTrack(event, '${track.name}')" title="Remove from list">✕</button>
+            ${btnHtml}
             <div class="track-name">${track.name}</div>
             ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
             ${statsText ? `<div class="track-stats">${statsText}</div>` : ''}
@@ -624,6 +631,29 @@ function hideTrack(event, fileName) {
     if (!hiddenTracks.includes(fileName)) {
         hiddenTracks.push(fileName);
         localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
+    }
+    displayPlaylist();
+}
+
+function unhideTrack(event, fileName) {
+    if (event) {
+        event.stopPropagation();
+    }
+    let hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
+    hiddenTracks = hiddenTracks.filter(name => name !== fileName);
+    localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
+    displayPlaylist();
+}
+
+function toggleHiddenView() {
+    showingHiddenView = !showingHiddenView;
+    const btn = document.getElementById('toggle-view-btn');
+    if (showingHiddenView) {
+        btn.innerHTML = '🎵 Show Regular Playlist';
+        btn.style.background = 'rgba(74, 222, 128, 0.2)';
+    } else {
+        btn.innerHTML = '🗑️ Show Hidden Tracks';
+        btn.style.background = '';
     }
     displayPlaylist();
 }
