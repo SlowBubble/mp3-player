@@ -246,6 +246,7 @@ function togglePlayPause() {
 function updatePlayPauseButton() {
     playPauseBtn.textContent = isPlaying ? '⏸️' : '▶️';
     playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
+    document.body.classList.toggle('playing', isPlaying);
 }
 
 // Rewind 9 seconds

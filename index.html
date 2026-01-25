@@ -16,12 +16,7 @@
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-        }
+
 
         .container {
             max-width: 400px;
@@ -264,7 +259,7 @@
         .back-btn {
             position: absolute;
             top: 20px;
-            left: 20px;
+            right: 20px;
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
@@ -273,6 +268,19 @@
             border-radius: 50%;
             font-size: 18px;
             cursor: pointer;
+            z-index: 10;
+        }
+
+        body.playing {
+            background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            transition: background 0.8s ease;
         }
 
         .empty-state {
@@ -373,8 +381,6 @@
             <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()"
                 title="Playback Speed">1x</button>
         </div>
-
-        <button class="btn" onclick="showHomePage()">🏠 Back to Playlist</button>
     </div>
 
     <script src="main.js"></script>
