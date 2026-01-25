@@ -257,18 +257,33 @@
         }
 
         .back-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.2);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.1);
             border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 18px;
+            height: 60px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            z-index: 10;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Adjust player page to not be hidden by fixed header */
+        #player-page {
+            padding-top: 60px;
         }
 
         body.playing {
@@ -318,7 +333,7 @@
 
         <!-- Player Page -->
         <div id="player-page" class="page">
-            <button class="back-btn" onclick="showHomePage()">←</button>
+            <button class="back-btn" onclick="showHomePage()">← Back to Playlist</button>
 
             <div class="header">
                 <h1>Now Playing</h1>
