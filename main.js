@@ -249,17 +249,17 @@ function updatePlayPauseButton() {
     document.body.classList.toggle('playing', isPlaying);
 }
 
-// Rewind 9 seconds
-function rewind9() {
+// Rewind 7 seconds
+function rewind7() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 9);
+        audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - 7);
     }
 }
 
-// Forward 9 seconds
-function forward9() {
+// Forward 7 seconds
+function forward7() {
     if (audioPlayer.src) {
-        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 9);
+        audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + 7);
     }
 }
 
@@ -438,12 +438,12 @@ function setupMediaSession(track) {
         });
 
         navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-            const skipTime = details.seekOffset || 9;
+            const skipTime = details.seekOffset || 7;
             audioPlayer.currentTime = Math.max(0, audioPlayer.currentTime - skipTime);
         });
 
         navigator.mediaSession.setActionHandler('seekforward', (details) => {
-            const skipTime = details.seekOffset || 9;
+            const skipTime = details.seekOffset || 7;
             audioPlayer.currentTime = Math.min(audioPlayer.duration, audioPlayer.currentTime + skipTime);
         });
 
