@@ -232,17 +232,20 @@ function togglePlayPause() {
             };
             saveTrackProgress(track.name, progressData);
         }
+        updatePlayPauseButton();
+        updateMediaSessionState();
     } else {
         audioPlayer.play().then(() => {
             isPlaying = true;
+            updatePlayPauseButton();
+            updateMediaSessionState();
         }).catch(e => {
             console.log('Play failed:', e);
             isPlaying = false;
+            updatePlayPauseButton();
+            updateMediaSessionState();
         });
     }
-
-    updatePlayPauseButton();
-    updateMediaSessionState();
 }
 
 // Update play/pause button
