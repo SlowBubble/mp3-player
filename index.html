@@ -305,12 +305,7 @@
         }
 
         .select-folder-container {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 360px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -321,22 +316,18 @@
         <div id="home-page" class="page active">
             <input type="file" id="file-input" class="file-input" webkitdirectory multiple accept="audio/mp3">
             
+            <div id="select-folder-container" class="select-folder-container">
+                <button class="btn" onclick="document.getElementById('file-input').click()">
+                    📁 Select Music Folder
+                </button>
+            </div>
+
             <button id="toggle-view-btn" class="btn" onclick="toggleHiddenView()" style="display: none;">
                 🗑️ Show Hidden Tracks
             </button>
 
             <div id="playlist" class="playlist"></div>
 
-            <div id="empty-state" class="empty-state">
-                <p>No music loaded yet</p>
-                <p>Tap the button below to get started!</p>
-            </div>
-
-            <div id="select-folder-container" class="select-folder-container">
-                <button class="btn" onclick="document.getElementById('file-input').click()">
-                    📁 Select Music Folder
-                </button>
-            </div>
         </div>
 
         <!-- Player Page -->
