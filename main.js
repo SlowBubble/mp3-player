@@ -68,6 +68,9 @@ function handleFileSelection(event) {
 
     displayPlaylist();
     emptyState.style.display = 'none';
+    
+    // Show the toggle hidden tracks button after folder is selected
+    document.getElementById('toggle-view-btn').style.display = 'block';
 }
 
 // Display playlist
