@@ -297,6 +297,13 @@ function togglePlaybackRate() {
     updateMediaSessionState();
 }
 
+// Restart current track
+function restartTrack() {
+    if (audioPlayer.src) {
+        audioPlayer.currentTime = 0;
+    }
+}
+
 // Update duration display
 function updateDuration() {
     if (audioPlayer.duration) {
