@@ -158,6 +158,15 @@ function displayPlaylist() {
 function playTrack(index) {
     if (index < 0 || index >= currentTracks.length) return;
 
+    // Check if this is the currently playing track
+    const isCurrentTrack = (index === currentTrackIndex && audioPlayer.src);
+
+    // If it's the current track and audio is already loaded, just show the player page
+    if (isCurrentTrack) {
+        showPlayerPage();
+        return;
+    }
+
     currentTrackIndex = index;
     const track = currentTracks[index];
 
