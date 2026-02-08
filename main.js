@@ -396,19 +396,36 @@ function showHomePage() {
     playerPage.classList.remove('active');
     playerControls.style.display = 'none';
 
-    // Stop progress tracking and add listening time
-    stopProgressTracking();
+    // Don't stop progress tracking - keep it running if audio is playing
+    // stopProgressTracking();
 
-    // Add listening time from current session if playing
-    if (isPlaying && currentTracks[currentTrackIndex]) {
-        addListeningTime(currentTracks[currentTrackIndex].name);
-    }
+    // Save current progress without pausing
+    if (currentTracks[currentTrackIndex]) {
+        const track = currentTracks[currentTrackIndex];
+        
+        // Add listening time from current session if playing
+        if (isPlaying) {
+            addListeningTime(track.name);
+        }
 
-    // Pause audio when going back
-    if (isPlaying) {
-        audioPlayer.pause();
-        isPlaying = false;
-        updatePlayPauseButton();
+        // Save current progress
+        if (audioPlayer.duration) {
+            const currentTime = audioPlayer.currentTime;
+            const duration = audioPlayer.duration;
+            const timeToSave = (duration - currentTime < 30) ? 0 : currentTime;
+
+            const existingData = getTrackProgress(track.name) || {};
+            const progressData = {
+                duration: duration,
+                currentTime: timeToSave,
+                lastPlayed: existingData.lastPlayed || Date.now(),
+                firstListened: existingData.firstListened,
+                totalListeningTime: existingData.totalListeningTime || 0
+            };
+            saveTrackProgress(track.name, progressData);
+        }
+
+        // Keep audio playing - don't pause
     }
 
     // Refresh playlist to show updated progress
