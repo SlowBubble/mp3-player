@@ -317,6 +317,27 @@ function restartTrack() {
     }
 }
 
+// Chapter navigation (chapters = 10 equal segments: 0/10, 1/10, ..., 9/10)
+function prevChapter() {
+    if (!audioPlayer.src || !audioPlayer.duration) return;
+    const chapterSize = audioPlayer.duration / 10;
+    const currentChapter = Math.floor(audioPlayer.currentTime / chapterSize);
+    // If we're more than 2s into the current chapter, go to its start; otherwise go to previous
+    const chapterStart = currentChapter * chapterSize;
+    if (audioPlayer.currentTime - chapterStart > 2 && currentChapter > 0) {
+        audioPlayer.currentTime = chapterStart;
+    } else {
+        audioPlayer.currentTime = Math.max(0, (currentChapter - 1) * chapterSize);
+    }
+}
+
+function nextChapter() {
+    if (!audioPlayer.src || !audioPlayer.duration) return;
+    const chapterSize = audioPlayer.duration / 10;
+    const currentChapter = Math.floor(audioPlayer.currentTime / chapterSize);
+    audioPlayer.currentTime = Math.min(audioPlayer.duration, (currentChapter + 1) * chapterSize);
+}
+
 // Update duration display
 function updateDuration() {
     if (audioPlayer.duration) {

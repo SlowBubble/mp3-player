@@ -1,4 +1,7 @@
 
+# m2a
+- I want another set of buttons that rewind and fastforward by chapter, where chapter is just subdividing the audio from 0/10, 1/10, ..., 9/10
+
 # m1a
 - Start with index.html and main.js
 - Make an mp3 playlist player (single-page app) that works from a mobile Chrome browser
