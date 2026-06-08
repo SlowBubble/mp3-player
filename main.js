@@ -356,7 +356,9 @@ function prevChapter() {
 function nextChapter() {
     if (!audioPlayer.src || !audioPlayer.duration) return;
     const chapterSize = audioPlayer.duration / 10;
-    const currentChapter = Math.floor(audioPlayer.currentTime / chapterSize);
+    // Add a small epsilon to avoid floating point issues where currentTime lands
+    // just below a chapter boundary after a previous nextChapter call while paused
+    const currentChapter = Math.floor((audioPlayer.currentTime + 0.01) / chapterSize);
     audioPlayer.currentTime = Math.min(audioPlayer.duration, (currentChapter + 1) * chapterSize);
 }
 
