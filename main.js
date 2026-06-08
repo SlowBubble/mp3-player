@@ -1,3 +1,25 @@
+// Register service worker for offline support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+            console.warn('Service worker registration failed:', err);
+        });
+    });
+}
+
+// Force re-download the app by clearing cache and reloading
+function forceRefresh() {
+    if ('serviceWorker' in navigator) {
+        caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).then(() => {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+                Promise.all(regs.map(r => r.unregister())).then(() => location.reload(true));
+            });
+        });
+    } else {
+        location.reload(true);
+    }
+}
+
 // Global variables
 let currentTracks = [];
 let currentTrackIndex = 0;

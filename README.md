@@ -1,4 +1,8 @@
 
+# m2b
+- I want to make the app works off-line by default (i.e. no need to download the app once it's downloaded)
+  - If the user really want to redownload it, have a button left of the "Select Music Folder" button to do it.
+
 # m2a
 - I want another set of buttons that rewind and fastforward by chapter, where chapter is just subdividing the audio from 0/10, 1/10, ..., 9/10
 

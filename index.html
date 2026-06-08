@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#667eea">
     <title>MP3 Playlist Player</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         * {
             margin: 0;
@@ -306,6 +307,19 @@
 
         .select-folder-container {
             margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .select-folder-container .btn {
+            margin-bottom: 0;
+        }
+
+        .btn-refresh {
+            flex: 0 0 auto;
+            width: auto;
+            padding: 15px 18px;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -317,6 +331,7 @@
             <input type="file" id="file-input" class="file-input" webkitdirectory multiple accept="audio/mp3">
             
             <div id="select-folder-container" class="select-folder-container">
+                <button class="btn btn-refresh" onclick="forceRefresh()" title="Re-download app">🔄</button>
                 <button class="btn" onclick="document.getElementById('file-input').click()">
                     📁 Select Music Folder
                 </button>
