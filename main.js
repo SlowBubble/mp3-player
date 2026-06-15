@@ -816,6 +816,7 @@ function preloadTrackDurations() {
         const tempAudio = new Audio();
         tempAudio.preload = 'metadata';
         tempAudio.src = track.url;
+        tempAudio.load();
 
         tempAudio.addEventListener('loadedmetadata', function () {
             if (tempAudio.duration && !isNaN(tempAudio.duration)) {
@@ -827,15 +828,18 @@ function preloadTrackDurations() {
             }
             tempAudio.src = '';
             loadNext();
-            // Refresh playlist once all durations are loaded
-            if (index === tracksNeedingDuration.length) {
-                displayPlaylist();
-            }
+            // Refresh playlist after each track loads so sorting improves progressively,
+            // and always refresh on the last one.
+            displayPlaylist();
         });
 
         tempAudio.addEventListener('error', function () {
             tempAudio.src = '';
             loadNext();
+            // Still refresh on error so the final state is shown
+            if (index === tracksNeedingDuration.length) {
+                displayPlaylist();
+            }
         });
     }
 
