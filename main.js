@@ -412,10 +412,42 @@ function handleTrackEnd() {
         saveTrackProgress(track.name, progressData);
     }
 
-    // Auto-play next track if available
-    if (currentTrackIndex < currentTracks.length - 1) {
-        playTrack(currentTrackIndex + 1);
+    // Hide the finished track
+    if (track) {
+        const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
+        if (!hiddenTracks.includes(track.name)) {
+            hiddenTracks.push(track.name);
+            localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
+        }
     }
+
+    // Auto-play the shortest non-hidden track
+    const nextIndex = getShortestVisibleTrackIndex();
+    if (nextIndex !== -1) {
+        playTrack(nextIndex);
+    } else {
+        // All tracks are hidden — refresh playlist to reflect final state
+        displayPlaylist();
+    }
+}
+
+// Returns the index (in currentTracks) of the shortest non-hidden track, or -1 if none.
+function getShortestVisibleTrackIndex() {
+    const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
+    let bestIndex = -1;
+    let bestDuration = Infinity;
+
+    currentTracks.forEach((track, index) => {
+        if (hiddenTracks.includes(track.name)) return;
+        const progressData = getTrackProgress(track.name);
+        const duration = progressData?.duration ?? Infinity;
+        if (duration < bestDuration) {
+            bestDuration = duration;
+            bestIndex = index;
+        }
+    });
+
+    return bestIndex;
 }
 
 // Seek to position
