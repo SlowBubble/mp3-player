@@ -873,36 +873,82 @@ function manualReloadDurations() {
     let loaded = 0;
     const total = currentTracks.length;
 
+    function onDone(track, duration) {
+        if (duration && !isNaN(duration) && duration > 0) {
+            const existing = getTrackProgress(track.name) || {};
+            existing.duration = duration;
+            saveTrackProgress(track.name, existing);
+        }
+        loaded++;
+        // Update button to show progress
+        btn.textContent = loaded < total ? `${loaded}/${total}` : '⏱️';
+        if (loaded === total) {
+            btn.disabled = false;
+            displayPlaylist();
+        }
+    }
+
     currentTracks.forEach(track => {
+        // Method 1: try Audio element metadata first
         const tempAudio = new Audio();
         tempAudio.preload = 'metadata';
+        let settled = false;
+
+        function tryDecodeAudioData() {
+            // Method 2: fetch the blob and decode via AudioContext (more reliable)
+            fetch(track.url)
+                .then(r => r.arrayBuffer())
+                .then(buf => {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    return ctx.decodeAudioData(buf).then(decoded => {
+                        ctx.close();
+                        return decoded.duration;
+                    });
+                })
+                .then(duration => {
+                    if (!settled) {
+                        settled = true;
+                        tempAudio.src = '';
+                        onDone(track, duration);
+                    }
+                })
+                .catch(() => {
+                    if (!settled) {
+                        settled = true;
+                        tempAudio.src = '';
+                        onDone(track, null);
+                    }
+                });
+        }
 
         tempAudio.addEventListener('loadedmetadata', function () {
-            if (tempAudio.duration && !isNaN(tempAudio.duration)) {
-                const existing = getTrackProgress(track.name) || {};
-                existing.duration = tempAudio.duration;
-                saveTrackProgress(track.name, existing);
-            }
-            tempAudio.src = '';
-            loaded++;
-            if (loaded === total) {
-                btn.disabled = false;
-                btn.textContent = '⏱️';
-                displayPlaylist();
+            if (!settled) {
+                settled = true;
+                const duration = tempAudio.duration;
+                tempAudio.src = '';
+                if (duration && !isNaN(duration) && duration > 0) {
+                    onDone(track, duration);
+                } else {
+                    // Audio element gave us nothing, fall back to AudioContext
+                    tryDecodeAudioData();
+                }
             }
         });
 
         tempAudio.addEventListener('error', function () {
-            tempAudio.src = '';
-            loaded++;
-            if (loaded === total) {
-                btn.disabled = false;
-                btn.textContent = '⏱️';
-                displayPlaylist();
+            if (!settled) {
+                tryDecodeAudioData();
             }
         });
 
         tempAudio.src = track.url;
         tempAudio.load();
+
+        // If loadedmetadata doesn't fire within 2s, fall back to AudioContext
+        setTimeout(() => {
+            if (!settled) {
+                tryDecodeAudioData();
+            }
+        }, 2000);
     });
 }
