@@ -740,6 +740,45 @@ function formatTotalListeningTime(totalSeconds) {
     }
 }
 
+// Hide the currently playing track and move to the shortest non-hidden track
+function hideCurrentAndPlayNext() {
+    const track = currentTracks[currentTrackIndex];
+    if (!track) return;
+
+    // Stop current playback
+    audioPlayer.pause();
+    isPlaying = false;
+    updatePlayPauseButton();
+
+    // Save progress
+    if (audioPlayer.duration) {
+        addListeningTime(track.name);
+        const existingData = getTrackProgress(track.name) || {};
+        saveTrackProgress(track.name, {
+            duration: audioPlayer.duration,
+            currentTime: audioPlayer.currentTime,
+            lastPlayed: existingData.lastPlayed || Date.now(),
+            firstListened: existingData.firstListened,
+            totalListeningTime: existingData.totalListeningTime || 0
+        });
+    }
+
+    // Hide the track
+    const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
+    if (!hiddenTracks.includes(track.name)) {
+        hiddenTracks.push(track.name);
+        localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
+    }
+
+    // Play shortest remaining track, or go back to playlist if none
+    const nextIndex = getShortestVisibleTrackIndex();
+    if (nextIndex !== -1) {
+        playTrack(nextIndex);
+    } else {
+        showHomePage();
+    }
+}
+
 function hideTrack(event, fileName) {
     if (event) {
         event.stopPropagation();

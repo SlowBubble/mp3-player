@@ -257,21 +257,27 @@
             margin-bottom: 15px;
         }
 
-        .back-btn {
+        .back-btn-bar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
+            height: 60px;
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .back-btn {
+            flex: 1;
             background: rgba(255, 255, 255, 0.1);
             border: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             height: 60px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            z-index: 100;
-            backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -280,6 +286,25 @@
 
         .back-btn:active {
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        .hide-and-next-btn {
+            flex: 0 0 60px;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            height: 60px;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .hide-and-next-btn:active {
+            background: rgba(255, 0, 0, 0.3);
         }
 
         /* Adjust player page to not be hidden by fixed header */
@@ -347,7 +372,10 @@
 
         <!-- Player Page -->
         <div id="player-page" class="page">
-            <button class="back-btn" onclick="showHomePage()">← Back to Playlist</button>
+            <div class="back-btn-bar">
+                <button class="back-btn" onclick="showHomePage()">← Back to Playlist</button>
+                <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track and play shortest next">✕</button>
+            </div>
 
             <div class="header">
                 <h1>Now Playing</h1>
