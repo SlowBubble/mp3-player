@@ -258,15 +258,9 @@
         }
 
         .back-btn-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
             display: flex;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            z-index: 100;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 15px;
         }
 
         .back-btn {
@@ -309,7 +303,7 @@
 
         /* Adjust player page to not be hidden by fixed header */
         #player-page {
-            padding-top: 60px;
+            padding-top: 0;
         }
 
         body.playing {
@@ -357,7 +351,6 @@
             
             <div id="select-folder-container" class="select-folder-container">
                 <button class="btn btn-refresh" onclick="forceRefresh()" title="Re-download app">🔄</button>
-                <button class="btn btn-refresh" id="reload-durations-btn" onclick="manualReloadDurations()" title="Reload track durations">⏱️</button>
                 <button class="btn" onclick="document.getElementById('file-input').click()">
                     📁 Select Music Folder
                 </button>
@@ -373,11 +366,6 @@
 
         <!-- Player Page -->
         <div id="player-page" class="page">
-            <div class="back-btn-bar">
-                <button class="back-btn" onclick="showHomePage()">← Back to Playlist</button>
-                <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track and play shortest next">✕</button>
-            </div>
-
             <div class="header">
                 <h1>Now Playing</h1>
             </div>
@@ -413,10 +401,14 @@
 
         <div class="secondary-controls">
             <button class="control-btn small" onclick="prevChapter()" title="Previous Chapter">⏮️</button>
-            <button class="control-btn small" onclick="restartTrack()" title="Restart Track">↩️</button>
             <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()"
                 title="Playback Speed">1x</button>
             <button class="control-btn small" onclick="nextChapter()" title="Next Chapter">⏭️</button>
+        </div>
+
+        <div class="back-btn-bar">
+            <button class="back-btn" onclick="showHomePage()">← Back to Playlist</button>
+            <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track and play shortest next">✕</button>
         </div>
     </div>
 
