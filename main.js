@@ -858,3 +858,51 @@ function toggleHiddenView() {
     }
     displayPlaylist();
 }
+
+// Manually trigger duration loading for all tracks (useful if preload didn't fire)
+function manualReloadDurations() {
+    if (currentTracks.length === 0) {
+        alert('No tracks loaded. Select a music folder first.');
+        return;
+    }
+
+    const btn = document.getElementById('reload-durations-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳';
+
+    let loaded = 0;
+    const total = currentTracks.length;
+
+    currentTracks.forEach(track => {
+        const tempAudio = new Audio();
+        tempAudio.preload = 'metadata';
+
+        tempAudio.addEventListener('loadedmetadata', function () {
+            if (tempAudio.duration && !isNaN(tempAudio.duration)) {
+                const existing = getTrackProgress(track.name) || {};
+                existing.duration = tempAudio.duration;
+                saveTrackProgress(track.name, existing);
+            }
+            tempAudio.src = '';
+            loaded++;
+            if (loaded === total) {
+                btn.disabled = false;
+                btn.textContent = '⏱️';
+                displayPlaylist();
+            }
+        });
+
+        tempAudio.addEventListener('error', function () {
+            tempAudio.src = '';
+            loaded++;
+            if (loaded === total) {
+                btn.disabled = false;
+                btn.textContent = '⏱️';
+                displayPlaylist();
+            }
+        });
+
+        tempAudio.src = track.url;
+        tempAudio.load();
+    });
+}
