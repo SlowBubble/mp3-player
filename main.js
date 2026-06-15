@@ -90,6 +90,7 @@ function handleFileSelection(event) {
 
     displayPlaylist();
     emptyState.style.display = 'none';
+    preloadTrackDurations();
     
     // Hide the select folder button and show the toggle hidden tracks button
     document.getElementById('select-folder-container').style.display = 'none';
@@ -109,15 +110,11 @@ function displayPlaylist() {
         }
     });
 
-    // Sort tracks by last played date (most recent first)
+    // Sort tracks by duration ascending (shortest first)
     const sortedTracks = [...currentTracks].sort((a, b) => {
-        const progressA = getTrackProgress(a.name);
-        const progressB = getTrackProgress(b.name);
-
-        const lastPlayedA = progressA?.lastPlayed || 0;
-        const lastPlayedB = progressB?.lastPlayed || 0;
-
-        return lastPlayedB - lastPlayedA; // Most recent first
+        const durationA = getTrackProgress(a.name)?.duration ?? Infinity;
+        const durationB = getTrackProgress(b.name)?.duration ?? Infinity;
+        return durationA - durationB;
     });
 
     // Get hidden tracks list
@@ -140,11 +137,15 @@ function displayPlaylist() {
         let progressPercentage = 0;
         let progressBarWidth = 100;
 
-        if (progressData) {
-            const currentTimeFormatted = formatTime(progressData.currentTime);
+        if (progressData && progressData.duration) {
             const durationFormatted = formatTime(progressData.duration);
-            durationText = `${currentTimeFormatted} / ${durationFormatted}`;
-            progressPercentage = (progressData.currentTime / progressData.duration) * 100;
+            if (progressData.currentTime > 0) {
+                const currentTimeFormatted = formatTime(progressData.currentTime);
+                durationText = `${currentTimeFormatted} / ${durationFormatted}`;
+                progressPercentage = (progressData.currentTime / progressData.duration) * 100;
+            } else {
+                durationText = durationFormatted;
+            }
 
             if (longestDuration > 0) {
                 progressBarWidth = (progressData.duration / longestDuration) * 100;
@@ -434,20 +435,16 @@ function handleTrackEnd() {
 // Returns the index (in currentTracks) of the shortest non-hidden track, or -1 if none.
 function getShortestVisibleTrackIndex() {
     const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
-    let bestIndex = -1;
-    let bestDuration = Infinity;
 
-    currentTracks.forEach((track, index) => {
-        if (hiddenTracks.includes(track.name)) return;
-        const progressData = getTrackProgress(track.name);
-        const duration = progressData?.duration ?? Infinity;
-        if (duration < bestDuration) {
-            bestDuration = duration;
-            bestIndex = index;
-        }
+    const sorted = [...currentTracks].sort((a, b) => {
+        const durationA = getTrackProgress(a.name)?.duration ?? Infinity;
+        const durationB = getTrackProgress(b.name)?.duration ?? Infinity;
+        return durationA - durationB;
     });
 
-    return bestIndex;
+    const next = sorted.find(track => !hiddenTracks.includes(track.name));
+    if (!next) return -1;
+    return currentTracks.findIndex(t => t.id === next.id);
 }
 
 // Seek to position
@@ -799,6 +796,50 @@ function unhideTrack(event, fileName) {
     hiddenTracks = hiddenTracks.filter(name => name !== fileName);
     localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
     displayPlaylist();
+}
+
+// Preload durations for all tracks that don't have one saved yet
+function preloadTrackDurations() {
+    const tracksNeedingDuration = currentTracks.filter(track => {
+        const data = getTrackProgress(track.name);
+        return !data || !data.duration;
+    });
+
+    if (tracksNeedingDuration.length === 0) return;
+
+    let index = 0;
+
+    function loadNext() {
+        if (index >= tracksNeedingDuration.length) return;
+        const track = tracksNeedingDuration[index++];
+
+        const tempAudio = new Audio();
+        tempAudio.preload = 'metadata';
+        tempAudio.src = track.url;
+
+        tempAudio.addEventListener('loadedmetadata', function () {
+            if (tempAudio.duration && !isNaN(tempAudio.duration)) {
+                const existing = getTrackProgress(track.name) || {};
+                if (!existing.duration) {
+                    existing.duration = tempAudio.duration;
+                    saveTrackProgress(track.name, existing);
+                }
+            }
+            tempAudio.src = '';
+            loadNext();
+            // Refresh playlist once all durations are loaded
+            if (index === tracksNeedingDuration.length) {
+                displayPlaylist();
+            }
+        });
+
+        tempAudio.addEventListener('error', function () {
+            tempAudio.src = '';
+            loadNext();
+        });
+    }
+
+    loadNext();
 }
 
 function toggleHiddenView() {
