@@ -85,6 +85,7 @@ function handleFileSelection(event) {
         id: index,
         name: file.name.replace('.mp3', ''),
         file: file,
+        size: file.size,
         url: URL.createObjectURL(file)
     }));
 
@@ -101,21 +102,14 @@ function handleFileSelection(event) {
 function displayPlaylist() {
     playlist.innerHTML = '';
 
-    // Find the longest file duration for proportional progress bars
-    let longestDuration = 0;
+    // Find the largest file size for proportional progress bars
+    let longestSize = 0;
     currentTracks.forEach(track => {
-        const progressData = getTrackProgress(track.name);
-        if (progressData && progressData.duration > longestDuration) {
-            longestDuration = progressData.duration;
-        }
+        if ((track.size ?? 0) > longestSize) longestSize = track.size;
     });
 
-    // Sort tracks by duration ascending (shortest first)
-    const sortedTracks = [...currentTracks].sort((a, b) => {
-        const durationA = getTrackProgress(a.name)?.duration ?? Infinity;
-        const durationB = getTrackProgress(b.name)?.duration ?? Infinity;
-        return durationA - durationB;
-    });
+    // Sort tracks by file size ascending (smallest first)
+    const sortedTracks = [...currentTracks].sort((a, b) => (a.size ?? Infinity) - (b.size ?? Infinity));
 
     // Get hidden tracks list
     const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
@@ -137,6 +131,12 @@ function displayPlaylist() {
         let progressPercentage = 0;
         let progressBarWidth = 100;
 
+        // Progress bar width is proportional to file size
+        if (longestSize > 0 && track.size) {
+            progressBarWidth = (track.size / longestSize) * 100;
+        }
+
+        // Duration text: use saved duration if available, otherwise show file size
         if (progressData && progressData.duration) {
             const durationFormatted = formatTime(progressData.duration);
             if (progressData.currentTime > 0) {
@@ -146,10 +146,8 @@ function displayPlaylist() {
             } else {
                 durationText = durationFormatted;
             }
-
-            if (longestDuration > 0) {
-                progressBarWidth = (progressData.duration / longestDuration) * 100;
-            }
+        } else if (track.size) {
+            durationText = formatFileSize(track.size);
         }
 
         const statsText = getTrackStatsText(progressData);
@@ -436,11 +434,7 @@ function handleTrackEnd() {
 function getShortestVisibleTrackIndex() {
     const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
 
-    const sorted = [...currentTracks].sort((a, b) => {
-        const durationA = getTrackProgress(a.name)?.duration ?? Infinity;
-        const durationB = getTrackProgress(b.name)?.duration ?? Infinity;
-        return durationA - durationB;
-    });
+    const sorted = [...currentTracks].sort((a, b) => (a.size ?? Infinity) - (b.size ?? Infinity));
 
     const next = sorted.find(track => !hiddenTracks.includes(track.name));
     if (!next) return -1;
@@ -457,6 +451,14 @@ function seekToPosition(event) {
     const newTime = percentage * audioPlayer.duration;
 
     audioPlayer.currentTime = newTime;
+}
+
+// Format file size (bytes to MB)
+function formatFileSize(bytes) {
+    if (bytes < 1024 * 1024) {
+        return (bytes / 1024).toFixed(0) + ' KB';
+    }
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
 // Format time (seconds to hh:mm:ss or mm:ss)
@@ -880,7 +882,6 @@ function manualReloadDurations() {
             saveTrackProgress(track.name, existing);
         }
         loaded++;
-        // Update button to show progress
         btn.textContent = loaded < total ? `${loaded}/${total}` : '⏱️';
         if (loaded === total) {
             btn.disabled = false;
@@ -888,67 +889,65 @@ function manualReloadDurations() {
         }
     }
 
-    currentTracks.forEach(track => {
-        // Method 1: try Audio element metadata first
-        const tempAudio = new Audio();
-        tempAudio.preload = 'metadata';
-        let settled = false;
+    // Process one at a time to avoid overwhelming the browser
+    let index = 0;
 
-        function tryDecodeAudioData() {
-            // Method 2: fetch the blob and decode via AudioContext (more reliable)
-            fetch(track.url)
-                .then(r => r.arrayBuffer())
-                .then(buf => {
-                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    return ctx.decodeAudioData(buf).then(decoded => {
-                        ctx.close();
-                        return decoded.duration;
-                    });
-                })
-                .then(duration => {
-                    if (!settled) {
-                        settled = true;
-                        tempAudio.src = '';
-                        onDone(track, duration);
-                    }
-                })
-                .catch(() => {
-                    if (!settled) {
-                        settled = true;
-                        tempAudio.src = '';
-                        onDone(track, null);
-                    }
-                });
+    function loadNext() {
+        if (index >= total) return;
+        const track = currentTracks[index++];
+
+        const existing = getTrackProgress(track.name);
+        if (existing && existing.duration) {
+            // Already have duration, skip
+            onDone(track, existing.duration);
+            loadNext();
+            return;
         }
 
+        const tempAudio = new Audio();
+        let settled = false;
+
+        function finish(duration) {
+            if (settled) return;
+            settled = true;
+            tempAudio.src = '';
+            onDone(track, duration);
+            loadNext();
+        }
+
+        // Seeking to a large time forces the browser to figure out the duration
+        tempAudio.addEventListener('durationchange', function () {
+            if (tempAudio.duration && !isNaN(tempAudio.duration) && tempAudio.duration !== Infinity) {
+                finish(tempAudio.duration);
+            }
+        });
+
         tempAudio.addEventListener('loadedmetadata', function () {
-            if (!settled) {
-                settled = true;
-                const duration = tempAudio.duration;
-                tempAudio.src = '';
-                if (duration && !isNaN(duration) && duration > 0) {
-                    onDone(track, duration);
-                } else {
-                    // Audio element gave us nothing, fall back to AudioContext
-                    tryDecodeAudioData();
-                }
+            if (tempAudio.duration && !isNaN(tempAudio.duration) && tempAudio.duration !== Infinity) {
+                finish(tempAudio.duration);
+            } else {
+                // Duration is Infinity (streaming); seek to end to force it
+                tempAudio.currentTime = 1e9;
+            }
+        });
+
+        tempAudio.addEventListener('timeupdate', function () {
+            if (tempAudio.duration && !isNaN(tempAudio.duration) && tempAudio.duration !== Infinity) {
+                finish(tempAudio.duration);
             }
         });
 
         tempAudio.addEventListener('error', function () {
-            if (!settled) {
-                tryDecodeAudioData();
-            }
+            finish(null);
         });
 
+        // Timeout after 10s per track
+        setTimeout(() => finish(null), 10000);
+
+        tempAudio.preload = 'metadata';
         tempAudio.src = track.url;
         tempAudio.load();
+    }
 
-        // If loadedmetadata doesn't fire within 2s, fall back to AudioContext
-        setTimeout(() => {
-            if (!settled) {
-                tryDecodeAudioData();
-            }
-        }, 2000);
-    });
+    loadNext();
 }
