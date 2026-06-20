@@ -67,6 +67,25 @@ function setupEventListeners() {
         }
     });
 
+    // Keep isPlaying in sync with the audio element's actual state.
+    // This handles cases where the OS pauses/resumes audio (e.g. screen lock/unlock,
+    // phone calls, or other interruptions) without going through togglePlayPause().
+    audioPlayer.addEventListener('pause', function () {
+        if (isPlaying) {
+            isPlaying = false;
+            updatePlayPauseButton();
+            updateMediaSessionState();
+        }
+    });
+
+    audioPlayer.addEventListener('play', function () {
+        if (!isPlaying) {
+            isPlaying = true;
+            updatePlayPauseButton();
+            updateMediaSessionState();
+        }
+    });
+
     // Progress bar click
     progressBar.addEventListener('click', seekToPosition);
 }
