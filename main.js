@@ -481,6 +481,7 @@ function showHomePage() {
     homePage.classList.add('active');
     playerPage.classList.remove('active');
     playerControls.style.display = 'none';
+    document.body.classList.remove('player-active');
 
     // Don't stop progress tracking - keep it running if audio is playing
     // stopProgressTracking();
@@ -525,6 +526,7 @@ function showPlayerPage() {
     homePage.classList.remove('active');
     playerPage.classList.add('active');
     playerControls.style.display = 'block';
+    document.body.classList.add('player-active');
 }
 
 // Setup Media Session API for background playback
