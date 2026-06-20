@@ -284,8 +284,6 @@ function updatePlayPauseButton() {
     playPauseBtn.textContent = isPlaying ? '⏸️' : '▶️';
     playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
     document.body.classList.toggle('playing', isPlaying);
-    const label = document.getElementById('now-playing-label');
-    if (label) label.textContent = isPlaying ? 'Now Playing' : 'Paused';
 }
 
 // Rewind 7 seconds

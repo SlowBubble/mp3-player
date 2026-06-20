@@ -34,11 +34,6 @@
             display: block;
         }
 
-        #now-playing-label {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
         #player-page.active {
             display: flex;
         }
@@ -324,7 +319,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
             min-height: 100vh;
             color: white;
             transition: background 0.8s ease;
@@ -379,7 +374,6 @@
         <!-- Player Page -->
         <div id="player-page" class="page">
             <div class="track-title" id="current-track-title" style="text-align: center; padding: 20px 20px 0;">Select a track</div>
-            <div id="now-playing-label" style="text-align: center; padding: 0 20px 20px;">Now Playing</div>
             <audio id="audio-player" preload="metadata"></audio>
         </div>
     </div>
