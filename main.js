@@ -613,9 +613,22 @@ function updateMediaSessionState() {
 
 // Handle mobile-specific behaviors
 document.addEventListener('visibilitychange', function () {
-    // Don't pause when tab becomes hidden - let Media Session API handle it
-    // This allows background playback on mobile
-    console.log('Visibility changed:', document.hidden ? 'hidden' : 'visible');
+    if (!document.hidden && isPlaying && audioPlayer.src) {
+        // iOS can silently drop the audio session after screen lock/unlock.
+        // The audio element still reports as playing (timeupdate keeps firing)
+        // but there's no sound. Detect this by checking if the audio is paused
+        // according to the element itself, or force a pause+play cycle to
+        // re-acquire the iOS audio session.
+        if (audioPlayer.paused) {
+            // Element knows it's paused — just resume
+            audioPlayer.play().catch(e => console.log('Resume after visibility change failed:', e));
+        } else {
+            // Element thinks it's playing but audio session may be lost.
+            // Pause and re-play to force iOS to re-acquire the audio session.
+            audioPlayer.pause();
+            audioPlayer.play().catch(e => console.log('Re-acquire audio session failed:', e));
+        }
+    }
 });
 
 // Prevent zoom on double tap for better mobile experience
