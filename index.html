@@ -259,8 +259,8 @@
 
         .back-btn-bar {
             display: flex;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
         }
 
         .back-btn {
@@ -390,6 +390,11 @@
             </div>
         </div>
 
+        <div class="back-btn-bar">
+            <button class="back-btn" onclick="showHomePage()">← Back to Playlist</button>
+            <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track and play shortest next">✕</button>
+        </div>
+
         <div class="control-buttons">
             <button class="control-btn small" onclick="rewind45()" title="Rewind 45s">⏪</button>
             <button class="control-btn" onclick="rewind7()" title="Rewind 7s">⏪</button>
@@ -404,11 +409,6 @@
             <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()"
                 title="Playback Speed">1x</button>
             <button class="control-btn small" onclick="nextChapter()" title="Next Chapter">⏭️</button>
-        </div>
-
-        <div class="back-btn-bar">
-            <button class="back-btn" onclick="showHomePage()">← Back to Playlist</button>
-            <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track and play shortest next">✕</button>
         </div>
     </div>
 
