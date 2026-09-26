@@ -79,6 +79,15 @@ function handleFileSelection(event) {
     displayPlaylist();
     emptyState.style.display = 'none';
     preloadTrackDurations();
+
+    // Resume the last active track from the previous session
+    const lastActiveTrack = localStorage.getItem('lastActiveTrack');
+    if (lastActiveTrack) {
+        const resumeIndex = currentTracks.findIndex(t => t.name === lastActiveTrack);
+        if (resumeIndex !== -1) {
+            playTrack(resumeIndex);
+        }
+    }
     
     // Hide the select folder button and show the sort + toggle hidden tracks buttons
     document.getElementById('select-folder-container').style.display = 'none';
@@ -200,6 +209,9 @@ function playTrack(index) {
 
     // Update last played date and first listen date
     updateLastPlayedDate(track.name);
+
+    // Persist as the last active track for session restore
+    localStorage.setItem('lastActiveTrack', track.name);
 
     // Start listening session tracking
     listeningSessionStart = Date.now();
