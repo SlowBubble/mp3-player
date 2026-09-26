@@ -217,9 +217,9 @@ function playTrack(index) {
     if (index < 0 || index >= currentTracks.length) return;
 
     // Check if this is the currently playing track
-    const isCurrentTrack = (index === currentTrackIndex && audioPlayer.src);
+    const isCurrentTrack = (index === currentTrackIndex && audioPlayer.src && isPlaying);
 
-    // If it's the current track and audio is already loaded, just show the player page
+    // If it's the current track and already playing, just show the player page
     if (isCurrentTrack) {
         showPlayerPage();
         return;
@@ -460,8 +460,42 @@ function handleTrackEnd() {
         saveTrackProgress(track.name, progressData);
     }
 
-    // Refresh playlist to reflect completion state
-    displayPlaylist();
+    // Auto-advance to the next track according to current sort order
+    const nextIndex = getNextVisibleTrackIndex();
+    if (nextIndex !== -1) {
+        playTrack(nextIndex);
+    } else {
+        // No more tracks — refresh playlist to reflect completion state
+        displayPlaylist();
+    }
+}
+
+// Returns the index (in currentTracks) of the next non-hidden track after the current one,
+// respecting the current sort order.
+function getNextVisibleTrackIndex() {
+    const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
+    const sortKey = SORT_MODES[currentSortIndex].key;
+    const activeTrack = currentTracks[currentTrackIndex];
+
+    // Build the same sorted order used by displayPlaylist (without pinning the active track)
+    const sorted = [...currentTracks].sort((a, b) => {
+        switch (sortKey) {
+            case 'shortest': return (a.size ?? Infinity) - (b.size ?? Infinity);
+            case 'longest':  return (b.size ?? 0) - (a.size ?? 0);
+            case 'newest':   return (b.lastModified ?? 0) - (a.lastModified ?? 0);
+            case 'oldest':   return (a.lastModified ?? Infinity) - (b.lastModified ?? Infinity);
+            default:         return 0;
+        }
+    });
+
+    // Find the position of the current track in the sorted list, then pick the next visible one
+    const currentSortedIndex = sorted.findIndex(t => t.id === activeTrack?.id);
+    for (let i = currentSortedIndex + 1; i < sorted.length; i++) {
+        if (!hiddenTracks.includes(sorted[i].name)) {
+            return currentTracks.findIndex(t => t.id === sorted[i].id);
+        }
+    }
+    return -1;
 }
 
 // Returns the index (in currentTracks) of the shortest non-hidden track, or -1 if none.
