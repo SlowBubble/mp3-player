@@ -369,17 +369,17 @@
             <input type="file" id="file-input" class="file-input" webkitdirectory multiple accept="audio/mp3">
             
             <div id="select-folder-container" class="select-folder-container">
-                <button id="sort-btn" class="btn btn-sort" onclick="cycleSortMode()" title="Cycle sort order">⏱ Shortest</button>
                 <button class="btn" onclick="document.getElementById('file-input').click()">
                     📁 Select Music Folder
                 </button>
             </div>
 
-            <p id="version-stamp" style="text-align:center; opacity:0.5; font-size:12px; margin-bottom:15px;">v2026-09-26 18:30</p>
-
-            <button id="toggle-view-btn" class="btn" onclick="toggleHiddenView()" style="display: none;">
-                🗑️ Show Hidden Tracks
-            </button>
+            <div id="post-load-controls" style="display:none;">
+                <button id="sort-btn" class="btn btn-sort" onclick="cycleSortMode()" title="Cycle sort order">⏱ Shortest</button>
+                <button id="toggle-view-btn" class="btn" onclick="toggleHiddenView()">
+                    🗑️ Show Hidden Tracks
+                </button>
+            </div>
 
             <div id="playlist" class="playlist"></div>
 

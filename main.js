@@ -98,11 +98,10 @@ function handleFileSelection(event) {
         playTrack(resumeIndex);
     }
 
-    // Hide the select folder button and show the toggle hidden tracks button
-    document.getElementById('toggle-view-btn').style.display = 'block';
-    document.getElementById('version-stamp').style.display = 'none';
-    const sortBtn = document.getElementById('sort-btn');
-    sortBtn.textContent = SORT_MODES[currentSortIndex].label;
+    // Hide the select folder button, show sort + toggle hidden tracks
+    document.getElementById('select-folder-container').style.display = 'none';
+    document.getElementById('post-load-controls').style.display = 'block';
+    document.getElementById('sort-btn').textContent = SORT_MODES[currentSortIndex].label;
 }
 
 // Display playlist
