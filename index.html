@@ -286,25 +286,14 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .back-btn {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            height: 60px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s ease;
+        .control-btn.play-pause {
+            flex: 3;
+            font-size: 32px;
         }
 
-        .back-btn:active {
-            background: rgba(255, 255, 255, 0.2);
-        }
+        .control-btn.icon-xs { font-size: 14px; }
+        .control-btn.icon-sm { font-size: 20px; }
+        .control-btn.icon-lg { font-size: 28px; }
 
         .hide-and-next-btn {
             flex: 0 0 60px;
@@ -386,7 +375,7 @@
                 </button>
             </div>
 
-            <p id="version-stamp" style="text-align:center; opacity:0.5; font-size:12px; margin-bottom:15px;">v2026-09-26 21:00</p>
+            <p id="version-stamp" style="text-align:center; opacity:0.5; font-size:12px; margin-bottom:15px;">v2026-09-26 22:00</p>
 
             <div id="post-load-controls" style="display:none;">
                 <button id="sort-btn" class="btn btn-sort" onclick="cycleSortMode()" title="Cycle sort order">⏱ Shortest</button>
@@ -419,8 +408,7 @@
         </div>
 
         <div class="back-btn-bar">
-            <button class="back-btn" onclick="showHomePage()">← Back to Playlist</button>
-            <button class="control-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause" style="flex: 0 0 70px; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">▶️</button>
+            <button class="control-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶️</button>
             <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track and play shortest next">✕</button>
         </div>
 
@@ -428,16 +416,16 @@
         </div>
 
         <div class="control-buttons">
-            <button class="control-btn small" onclick="rewind45()" title="Rewind 45s">⏪45</button>
-            <button class="control-btn" onclick="rewind7()" title="Rewind 7s">⏪7</button>
-            <button class="control-btn" onclick="forward7()" title="Forward 7s">7⏩</button>
-            <button class="control-btn small" onclick="forward45()" title="Forward 45s">45⏩</button>
+            <button class="control-btn icon-sm" onclick="rewind45()" title="Rewind 45s">⏪</button>
+            <button class="control-btn icon-xs" onclick="rewind7()" title="Rewind 7s">⏪</button>
+            <button class="control-btn icon-xs" onclick="forward7()" title="Forward 7s">⏩</button>
+            <button class="control-btn icon-sm" onclick="forward45()" title="Forward 45s">⏩</button>
         </div>
 
         <div class="secondary-controls">
-            <button class="control-btn small" onclick="prevChapter()" title="Previous Chapter">⏮️</button>
+            <button class="control-btn icon-lg" onclick="prevChapter()" title="Previous Chapter">⏮️</button>
             <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()" title="Playback Speed">1x</button>
-            <button class="control-btn small" onclick="nextChapter()" title="Next Chapter">⏭️</button>
+            <button class="control-btn icon-lg" onclick="nextChapter()" title="Next Chapter">⏭️</button>
         </div>
     </div>
 
