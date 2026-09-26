@@ -45,13 +45,6 @@ function setupEventListeners() {
     audioPlayer.addEventListener('loadedmetadata', updateDuration);
     audioPlayer.addEventListener('timeupdate', updateProgress);
     audioPlayer.addEventListener('ended', handleTrackEnd);
-    audioPlayer.addEventListener('canplay', function () {
-        // Auto-play when track is ready (mobile browsers may block this)
-        if (isPlaying) {
-            audioPlayer.play().catch(e => console.log('Auto-play blocked:', e));
-        }
-    });
-
     // Progress bar click
     progressBar.addEventListener('click', seekToPosition);
 }
@@ -84,27 +77,13 @@ function handleFileSelection(event) {
         ? currentTracks.findIndex(t => t.name === lastActiveTrack)
         : -1;
 
+    // Session restore: load the last active track's metadata but don't navigate or auto-play
     if (resumeIndex !== -1) {
         currentTrackIndex = resumeIndex;
         const track = currentTracks[resumeIndex];
         currentTrackTitle.textContent = track.name;
         audioPlayer.src = track.url;
         audioPlayer.load();
-        // Restore saved position once metadata is ready
-        function restorePosition() {
-            const progressData = getTrackProgress(track.name);
-            if (progressData && progressData.currentTime > 0) {
-                audioPlayer.currentTime = Math.max(0, progressData.currentTime - 5);
-            }
-            audioPlayer.removeEventListener('loadedmetadata', restorePosition);
-        }
-        if (audioPlayer.readyState >= 1) {
-            restorePosition();
-        } else {
-            audioPlayer.addEventListener('loadedmetadata', restorePosition);
-        }
-        setupMediaSession(track);
-        showPlayerPage();
     }
 
     // Hide the select folder button, show sort + toggle hidden tracks
@@ -481,23 +460,8 @@ function handleTrackEnd() {
         saveTrackProgress(track.name, progressData);
     }
 
-    // Hide the finished track
-    if (track) {
-        const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
-        if (!hiddenTracks.includes(track.name)) {
-            hiddenTracks.push(track.name);
-            localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
-        }
-    }
-
-    // Auto-play the shortest non-hidden track
-    const nextIndex = getShortestVisibleTrackIndex();
-    if (nextIndex !== -1) {
-        playTrack(nextIndex);
-    } else {
-        // All tracks are hidden — refresh playlist to reflect final state
-        displayPlaylist();
-    }
+    // Refresh playlist to reflect completion state
+    displayPlaylist();
 }
 
 // Returns the index (in currentTracks) of the shortest non-hidden track, or -1 if none.
