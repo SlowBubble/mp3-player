@@ -91,6 +91,7 @@ function handleFileSelection(event) {
     
     // Hide the select folder button and show the toggle hidden tracks button
     document.getElementById('toggle-view-btn').style.display = 'block';
+    document.getElementById('version-stamp').style.display = 'none';
     const sortBtn = document.getElementById('sort-btn');
     sortBtn.textContent = SORT_MODES[currentSortIndex].label;
 }
