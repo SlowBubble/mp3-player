@@ -346,6 +346,7 @@
         .select-folder-container {
             margin-bottom: 20px;
             display: flex;
+            flex-direction: column;
             gap: 10px;
         }
 
@@ -373,11 +374,8 @@
                 <button class="btn" onclick="document.getElementById('file-input').click()">
                     📁 Select Music Folder
                 </button>
-            </div>
-
-            <p id="version-stamp" style="text-align:center; opacity:0.5; font-size:12px; margin-bottom:15px;">v2026-09-26 22:00</p>
-
-            <div id="post-load-controls" style="display:none;">
+                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-09-26 24:00</p>
+            </div>            <div id="post-load-controls" style="display:none;">
                 <button id="sort-btn" class="btn btn-sort" onclick="cycleSortMode()" title="Cycle sort order">⏱ Shortest</button>
                 <button id="toggle-view-btn" class="btn" onclick="toggleHiddenView()">
                     🗑️ Show Hidden Tracks

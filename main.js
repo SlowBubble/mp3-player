@@ -20,7 +20,6 @@ let currentSortIndex = parseInt(localStorage.getItem('sortIndex') || '0', 10) % 
 // DOM elements
 const fileInput = document.getElementById('file-input');
 const playlist = document.getElementById('playlist');
-const emptyState = document.getElementById('empty-state');
 const homePage = document.getElementById('home-page');
 const playerPage = document.getElementById('player-page');
 const playerControls = document.getElementById('player-controls');
@@ -77,7 +76,6 @@ function handleFileSelection(event) {
     }));
 
     displayPlaylist();
-    emptyState.style.display = 'none';
     preloadTrackDurations();
 
     // Navigate to the track page if there was an active track last session
@@ -111,7 +109,6 @@ function handleFileSelection(event) {
 
     // Hide the select folder button, show sort + toggle hidden tracks
     document.getElementById('select-folder-container').style.display = 'none';
-    document.getElementById('version-stamp').style.display = 'none';
     document.getElementById('post-load-controls').style.display = 'block';
     document.getElementById('sort-btn').textContent = SORT_MODES[currentSortIndex].label;
 }
