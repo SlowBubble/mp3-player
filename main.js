@@ -10,10 +10,10 @@ let listeningSessionStart = null;
 let showingHiddenView = false;
 
 const SORT_MODES = [
-    { key: 'shortest', label: '📦 Small' },
-    { key: 'longest',  label: '📦 Big'   },
-    { key: 'newest',   label: '📅 Newest'   },
-    { key: 'oldest',   label: '📅 Oldest'   },
+    { key: 'shortest', label: 'Sort (Small)' },
+    { key: 'longest',  label: 'Sort (Big)'   },
+    { key: 'newest',   label: 'Sort (Fresh)' },
+    { key: 'oldest',   label: 'Sort (Stale)' },
 ];
 let currentSortIndex = parseInt(localStorage.getItem('sortIndex') || '0', 10) % SORT_MODES.length;
 
