@@ -227,9 +227,11 @@ function playTrack(index) {
     // Update UI
     currentTrackTitle.textContent = track.name;
 
-    // Load and play audio
-    audioPlayer.src = track.url;
-    audioPlayer.load();
+    // Load and play audio — skip if already primed with this URL (gesture unlock)
+    if (audioPlayer.src !== track.url) {
+        audioPlayer.src = track.url;
+        audioPlayer.load();
+    }
 
     // Show player page
     showPlayerPage();
@@ -244,15 +246,22 @@ function playTrack(index) {
     // Start progress tracking interval
     startProgressTracking(track.name);
 
-    // Restore saved position when metadata is loaded
-    audioPlayer.addEventListener('loadedmetadata', function restorePosition() {
+    // Restore saved position — if metadata is already loaded use it immediately,
+    // otherwise wait for the loadedmetadata event
+    function restorePosition() {
         const progressData = getTrackProgress(track.name);
         if (progressData && progressData.currentTime > 0) {
-            audioPlayer.currentTime = progressData.currentTime;
+            audioPlayer.currentTime = Math.max(0, progressData.currentTime - 5);
         }
-        // Remove this listener after use
         audioPlayer.removeEventListener('loadedmetadata', restorePosition);
-    });
+    }
+
+    if (audioPlayer.readyState >= 1) {
+        // Metadata already available (src was primed before playTrack was called)
+        restorePosition();
+    } else {
+        audioPlayer.addEventListener('loadedmetadata', restorePosition);
+    }
 
     // Try to play (may be blocked on mobile until user interaction)
     audioPlayer.play().catch(e => {
