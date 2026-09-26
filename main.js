@@ -10,8 +10,8 @@ let listeningSessionStart = null;
 let showingHiddenView = false;
 
 const SORT_MODES = [
-    { key: 'shortest', label: '⏱ Shortest' },
-    { key: 'longest',  label: '⏱ Longest'  },
+    { key: 'shortest', label: '📦 Small' },
+    { key: 'longest',  label: '📦 Big'   },
     { key: 'newest',   label: '📅 Newest'   },
     { key: 'oldest',   label: '📅 Oldest'   },
 ];
