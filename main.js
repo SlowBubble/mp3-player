@@ -89,12 +89,10 @@ function handleFileSelection(event) {
         }
     }
     
-    // Hide the select folder button and show the sort + toggle hidden tracks buttons
-    document.getElementById('select-folder-container').style.display = 'none';
-    const sortBtn = document.getElementById('sort-btn');
-    sortBtn.style.display = 'block';
-    sortBtn.textContent = SORT_MODES[currentSortIndex].label;
+    // Hide the select folder button and show the toggle hidden tracks button
     document.getElementById('toggle-view-btn').style.display = 'block';
+    const sortBtn = document.getElementById('sort-btn');
+    sortBtn.textContent = SORT_MODES[currentSortIndex].label;
 }
 
 // Display playlist
