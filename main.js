@@ -76,26 +76,37 @@ function handleFileSelection(event) {
         url: URL.createObjectURL(file)
     }));
 
-    // Unlock autoplay by touching the audio element synchronously while the
-    // user-gesture is still active, before any async work consumes it.
+    displayPlaylist();
+    emptyState.style.display = 'none';
+    preloadTrackDurations();
+
+    // Navigate to the track page if there was an active track last session
     const lastActiveTrack = localStorage.getItem('lastActiveTrack');
     const resumeIndex = lastActiveTrack
         ? currentTracks.findIndex(t => t.name === lastActiveTrack)
         : -1;
 
     if (resumeIndex !== -1) {
-        // Prime the audio element immediately inside the gesture handler
-        audioPlayer.src = currentTracks[resumeIndex].url;
+        currentTrackIndex = resumeIndex;
+        const track = currentTracks[resumeIndex];
+        currentTrackTitle.textContent = track.name;
+        audioPlayer.src = track.url;
         audioPlayer.load();
-        audioPlayer.play().catch(() => {}); // unlocks autoplay; playTrack will re-call play properly
-    }
-
-    displayPlaylist();
-    emptyState.style.display = 'none';
-    preloadTrackDurations();
-
-    if (resumeIndex !== -1) {
-        playTrack(resumeIndex);
+        // Restore saved position once metadata is ready
+        function restorePosition() {
+            const progressData = getTrackProgress(track.name);
+            if (progressData && progressData.currentTime > 0) {
+                audioPlayer.currentTime = Math.max(0, progressData.currentTime - 5);
+            }
+            audioPlayer.removeEventListener('loadedmetadata', restorePosition);
+        }
+        if (audioPlayer.readyState >= 1) {
+            restorePosition();
+        } else {
+            audioPlayer.addEventListener('loadedmetadata', restorePosition);
+        }
+        setupMediaSession(track);
+        showPlayerPage();
     }
 
     // Hide the select folder button, show sort + toggle hidden tracks
