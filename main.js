@@ -76,19 +76,28 @@ function handleFileSelection(event) {
         url: URL.createObjectURL(file)
     }));
 
+    // Unlock autoplay by touching the audio element synchronously while the
+    // user-gesture is still active, before any async work consumes it.
+    const lastActiveTrack = localStorage.getItem('lastActiveTrack');
+    const resumeIndex = lastActiveTrack
+        ? currentTracks.findIndex(t => t.name === lastActiveTrack)
+        : -1;
+
+    if (resumeIndex !== -1) {
+        // Prime the audio element immediately inside the gesture handler
+        audioPlayer.src = currentTracks[resumeIndex].url;
+        audioPlayer.load();
+        audioPlayer.play().catch(() => {}); // unlocks autoplay; playTrack will re-call play properly
+    }
+
     displayPlaylist();
     emptyState.style.display = 'none';
     preloadTrackDurations();
 
-    // Resume the last active track from the previous session
-    const lastActiveTrack = localStorage.getItem('lastActiveTrack');
-    if (lastActiveTrack) {
-        const resumeIndex = currentTracks.findIndex(t => t.name === lastActiveTrack);
-        if (resumeIndex !== -1) {
-            playTrack(resumeIndex);
-        }
+    if (resumeIndex !== -1) {
+        playTrack(resumeIndex);
     }
-    
+
     // Hide the select folder button and show the toggle hidden tracks button
     document.getElementById('toggle-view-btn').style.display = 'block';
     document.getElementById('version-stamp').style.display = 'none';
