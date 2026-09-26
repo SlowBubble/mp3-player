@@ -98,9 +98,15 @@ function displayPlaylist() {
         if ((track.size ?? 0) > longestSize) longestSize = track.size;
     });
 
-    // Sort tracks according to current sort mode
+    // Sort tracks according to current sort mode, with the active track pinned first
     const sortKey = SORT_MODES[currentSortIndex].key;
+    const activeTrack = audioPlayer && audioPlayer.src ? currentTracks[currentTrackIndex] : null;
     const sortedTracks = [...currentTracks].sort((a, b) => {
+        // Pin the active track to the top
+        if (activeTrack) {
+            if (a.id === activeTrack.id) return -1;
+            if (b.id === activeTrack.id) return 1;
+        }
         switch (sortKey) {
             case 'shortest': return (a.size ?? Infinity) - (b.size ?? Infinity);
             case 'longest':  return (b.size ?? 0) - (a.size ?? 0);
