@@ -9,6 +9,14 @@ let progressUpdateInterval = null;
 let listeningSessionStart = null;
 let showingHiddenView = false;
 
+const SORT_MODES = [
+    { key: 'shortest', label: '⏱ Shortest' },
+    { key: 'longest',  label: '⏱ Longest'  },
+    { key: 'newest',   label: '📅 Newest'   },
+    { key: 'oldest',   label: '📅 Oldest'   },
+];
+let currentSortIndex = parseInt(localStorage.getItem('sortIndex') || '0', 10) % SORT_MODES.length;
+
 // DOM elements
 const fileInput = document.getElementById('file-input');
 const playlist = document.getElementById('playlist');
@@ -64,6 +72,7 @@ function handleFileSelection(event) {
         name: file.name.replace('.mp3', ''),
         file: file,
         size: file.size,
+        lastModified: file.lastModified,
         url: URL.createObjectURL(file)
     }));
 
@@ -71,8 +80,11 @@ function handleFileSelection(event) {
     emptyState.style.display = 'none';
     preloadTrackDurations();
     
-    // Hide the select folder button and show the toggle hidden tracks button
+    // Hide the select folder button and show the sort + toggle hidden tracks buttons
     document.getElementById('select-folder-container').style.display = 'none';
+    const sortBtn = document.getElementById('sort-btn');
+    sortBtn.style.display = 'block';
+    sortBtn.textContent = SORT_MODES[currentSortIndex].label;
     document.getElementById('toggle-view-btn').style.display = 'block';
 }
 
@@ -86,8 +98,17 @@ function displayPlaylist() {
         if ((track.size ?? 0) > longestSize) longestSize = track.size;
     });
 
-    // Sort tracks by file size ascending (smallest first)
-    const sortedTracks = [...currentTracks].sort((a, b) => (a.size ?? Infinity) - (b.size ?? Infinity));
+    // Sort tracks according to current sort mode
+    const sortKey = SORT_MODES[currentSortIndex].key;
+    const sortedTracks = [...currentTracks].sort((a, b) => {
+        switch (sortKey) {
+            case 'shortest': return (a.size ?? Infinity) - (b.size ?? Infinity);
+            case 'longest':  return (b.size ?? 0) - (a.size ?? 0);
+            case 'newest':   return (b.lastModified ?? 0) - (a.lastModified ?? 0);
+            case 'oldest':   return (a.lastModified ?? Infinity) - (b.lastModified ?? Infinity);
+            default:         return 0;
+        }
+    });
 
     // Get hidden tracks list
     const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
@@ -103,6 +124,8 @@ function displayPlaylist() {
 
         const trackElement = document.createElement('div');
         trackElement.className = 'track-wrapper';
+
+        const isCurrentTrack = originalIndex === currentTrackIndex && audioPlayer && audioPlayer.src;
 
         const progressData = getTrackProgress(track.name);
         let durationText = '';
@@ -136,7 +159,7 @@ function displayPlaylist() {
             : `<button class="remove-track-btn" onclick="hideTrack(event, '${safeName}')" title="Remove from list">✕</button>`;
 
         trackElement.innerHTML = `
-            <div class="track-item" onclick="playTrack(${originalIndex})">
+            <div class="track-item ${isCurrentTrack ? 'track-item--active' : ''}" onclick="playTrack(${originalIndex})">
                 <div class="track-name" title="${track.name}">${track.name}</div>
                 ${durationText ? `<div class="track-duration">${durationText}</div>` : ''}
                 ${statsText ? `<div class="track-stats">${statsText}</div>` : ''}
@@ -826,6 +849,14 @@ function preloadTrackDurations() {
     }
 
     loadNext();
+}
+
+function cycleSortMode() {
+    currentSortIndex = (currentSortIndex + 1) % SORT_MODES.length;
+    localStorage.setItem('sortIndex', currentSortIndex);
+    const btn = document.getElementById('sort-btn');
+    if (btn) btn.textContent = SORT_MODES[currentSortIndex].label;
+    displayPlaylist();
 }
 
 function toggleHiddenView() {

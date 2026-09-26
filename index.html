@@ -99,6 +99,15 @@
             transform: translateX(-2px);
         }
 
+        .track-item--active {
+            background: rgba(74, 222, 128, 0.25);
+            border: 1px solid rgba(74, 222, 128, 0.5);
+        }
+
+        .track-item--active:hover {
+            background: rgba(74, 222, 128, 0.35);
+        }
+
         .track-name {
             font-weight: 600;
             margin-bottom: 5px;
@@ -356,6 +365,8 @@
                     📁 Select Music Folder
                 </button>
             </div>
+
+            <button id="sort-btn" class="btn btn-sort" onclick="cycleSortMode()" title="Cycle sort order" style="display: none;">⏱ Shortest</button>
 
             <button id="toggle-view-btn" class="btn" onclick="toggleHiddenView()" style="display: none;">
                 🗑️ Show Hidden Tracks
