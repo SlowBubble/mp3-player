@@ -136,6 +136,10 @@ function displayPlaylist() {
     // Get hidden tracks list
     const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
 
+    const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+    let prevTrack = null;
+    let prevProgressData = null;
+
     sortedTracks.forEach((track) => {
         // Toggle filtering logic
         const isHidden = hiddenTracks.includes(track.name);
@@ -151,6 +155,26 @@ function displayPlaylist() {
         const isCurrentTrack = originalIndex === currentTrackIndex && audioPlayer && audioPlayer.src;
 
         const progressData = getTrackProgress(track.name);
+
+        // Insert a divider when there's a big gap from the previous track
+        if (prevTrack !== null) {
+            let showDivider = false;
+            if ((sortKey === 'shortest' || sortKey === 'longest') && progressData && progressData.duration && prevProgressData && prevProgressData.duration) {
+                const a = prevProgressData.duration;
+                const b = progressData.duration;
+                const ratio = Math.max(a, b) / Math.min(a, b);
+                if (ratio >= 1.5) showDivider = true;
+            } else if (sortKey === 'newest' || sortKey === 'oldest') {
+                const gap = Math.abs((track.lastModified ?? 0) - (prevTrack.lastModified ?? 0));
+                if (gap >= TWO_HOURS_MS) showDivider = true;
+            }
+            if (showDivider) {
+                const divider = document.createElement('div');
+                divider.className = 'track-divider';
+                playlist.appendChild(divider);
+            }
+        }
+
         let durationText = '';
         let progressPercentage = 0;
         let progressBarWidth = 100;
@@ -196,6 +220,8 @@ function displayPlaylist() {
         `;
 
         playlist.appendChild(trackElement);
+        prevTrack = track;
+        prevProgressData = progressData;
     });
 }
 
