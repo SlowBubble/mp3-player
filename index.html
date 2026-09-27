@@ -230,7 +230,7 @@
 
         .control-buttons {
             display: flex;
-            gap: 0;
+            gap: 4px;
             margin-bottom: 0;
         }
 
@@ -269,7 +269,7 @@
 
         .secondary-controls {
             display: flex;
-            gap: 0;
+            gap: 4px;
             margin-bottom: 0;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -279,10 +279,16 @@
             font-size: 16px;
         }
 
-        .back-btn-bar {
+        .home-btn-bar {
             display: flex;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             margin-top: 5px;
+        }
+
+        .back-btn-bar {
+            display: flex;
+            gap: 4px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -405,8 +411,11 @@
             </div>
         </div>
 
-        <div class="back-btn-bar">
+        <div class="home-btn-bar">
             <button class="control-btn icon-sm" onclick="showHomePage()" title="Back to playlist">🏠</button>
+        </div>
+
+        <div class="back-btn-bar">
             <button class="control-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶️</button>
             <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track">✕</button>
         </div>
