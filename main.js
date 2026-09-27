@@ -68,7 +68,6 @@ function handleFileSelection(event) {
         url: URL.createObjectURL(file)
     }));
 
-    displayPlaylist();
     preloadTrackDurations();
 
     // Navigate to the track page if there was an active track last session
@@ -86,6 +85,9 @@ function handleFileSelection(event) {
         audioPlayer.load();
     }
 
+    // Now render the playlist with the correct currentTrackIndex already set
+    displayPlaylist();
+
     // Hide the select folder button, show sort + toggle hidden tracks
     document.getElementById('select-folder-container').style.display = 'none';
     document.getElementById('post-load-controls').style.display = 'block';
@@ -102,14 +104,16 @@ function displayPlaylist() {
         if ((track.size ?? 0) > longestSize) longestSize = track.size;
     });
 
-    // Sort tracks according to current sort mode, with the active track pinned first
+    // Sort tracks according to current sort mode, with the active track pinned first.
+    // We pin by currentTrackIndex unconditionally (the index is valid as long as
+    // currentTracks is populated, even before audioPlayer.src is set).
     const sortKey = SORT_MODES[currentSortIndex].key;
-    const activeTrack = audioPlayer && audioPlayer.src ? currentTracks[currentTrackIndex] : null;
+    const pinnedTrack = currentTracks.length > 0 ? currentTracks[currentTrackIndex] : null;
     const sortedTracks = [...currentTracks].sort((a, b) => {
         // Pin the active track to the top
-        if (activeTrack) {
-            if (a.id === activeTrack.id) return -1;
-            if (b.id === activeTrack.id) return 1;
+        if (pinnedTrack) {
+            if (a.id === pinnedTrack.id) return -1;
+            if (b.id === pinnedTrack.id) return 1;
         }
         switch (sortKey) {
             case 'shortest': {
@@ -181,9 +185,9 @@ function displayPlaylist() {
 
         // Insert a labeled divider at bucket boundaries
         if (prevTrack !== null) {
-            // Demarcation after the pinned active track — always insert one divider here
+            // Demarcation after the pinned track — always insert one divider here
             // and skip the regular bucket/date check to avoid a double divider.
-            if (activeTrack && prevTrack.id === activeTrack.id) {
+            if (pinnedTrack && prevTrack.id === pinnedTrack.id) {
                 let pinDividerLabel = null;
                 if (sortKey === 'shortest' || sortKey === 'longest') {
                     const curDur = (progressData && progressData.duration) || estimateDuration(track.size);
@@ -223,7 +227,7 @@ function displayPlaylist() {
                     playlist.appendChild(divider);
                 }
             }
-        } else if (activeTrack && track.id === activeTrack.id) {
+        } else if (pinnedTrack && track.id === pinnedTrack.id) {
             // The pinned track is first — we'll append a divider right after it below.
         }
 
@@ -275,7 +279,7 @@ function displayPlaylist() {
 
         // If this is the pinned track and it was the first item (prevTrack was null),
         // insert the separator divider immediately after it.
-        if (activeTrack && track.id === activeTrack.id && prevTrack === null) {
+        if (pinnedTrack && track.id === pinnedTrack.id && prevTrack === null) {
             const pinDivider = document.createElement('div');
             pinDivider.className = 'track-divider';
             playlist.appendChild(pinDivider);
