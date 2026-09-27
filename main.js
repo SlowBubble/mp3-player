@@ -171,8 +171,8 @@ function displayPlaylist() {
         if (prevTrack !== null) {
             let dividerLabel = null;
             if (sortKey === 'shortest' || sortKey === 'longest') {
-                const curDur = progressData && progressData.duration;
-                const prevDur = prevProgressData && prevProgressData.duration;
+                const curDur = (progressData && progressData.duration) || estimateDuration(track.size);
+                const prevDur = (prevProgressData && prevProgressData.duration) || estimateDuration(prevTrack.size);
                 if (curDur && prevDur) {
                     const curBucket = getDurationBucket(curDur);
                     const prevBucket = getDurationBucket(prevDur);
@@ -456,6 +456,8 @@ function updateDuration() {
             progressData.duration = audioPlayer.duration;
             // Don't overwrite lastPlayed here, only when actually starting playback
             saveTrackProgress(track.name, progressData);
+            // Record size→duration mapping for interpolation
+            recordSizeDuration(track.size, audioPlayer.duration);
         }
     }
 }
@@ -713,6 +715,79 @@ document.addEventListener('touchend', function (event) {
     lastTouchEnd = now;
 }, false);
 
+// Size→Duration mapping: records known size/duration pairs and interpolates for unknowns
+const SIZE_DURATION_MAP_KEY = 'sizeDurationMap';
+const SIZE_DURATION_MAP_MAX = 200;
+
+function recordSizeDuration(size, duration) {
+    if (!size || !duration || isNaN(duration)) return;
+    try {
+        const map = JSON.parse(localStorage.getItem(SIZE_DURATION_MAP_KEY) || '[]');
+        // Update existing entry for this size, or push a new one
+        const existing = map.findIndex(e => e.size === size);
+        if (existing !== -1) {
+            map[existing].duration = duration;
+        } else {
+            map.push({ size, duration });
+            // If over cap, drop the entry whose size is most over-represented (oldest insertion order)
+            if (map.length > SIZE_DURATION_MAP_MAX) {
+                map.shift();
+            }
+        }
+        localStorage.setItem(SIZE_DURATION_MAP_KEY, JSON.stringify(map));
+    } catch (e) {
+        console.error('Error saving size/duration map:', e);
+    }
+}
+
+function estimateDuration(size) {
+    if (!size) return null;
+    try {
+        const map = JSON.parse(localStorage.getItem(SIZE_DURATION_MAP_KEY) || '[]');
+        if (map.length === 0) return null;
+
+        // Sort by size ascending
+        const sorted = [...map].sort((a, b) => a.size - b.size);
+
+        // Exact match
+        const exact = sorted.find(e => e.size === size);
+        if (exact) return exact.duration;
+
+        // Find bracketing entries
+        let lo = null, hi = null;
+        for (const e of sorted) {
+            if (e.size <= size) lo = e;
+            else if (hi === null) hi = e;
+        }
+
+        if (lo && hi) {
+            // Linear interpolation
+            const t = (size - lo.size) / (hi.size - lo.size);
+            return lo.duration + t * (hi.duration - lo.duration);
+        }
+
+        // Extrapolate: use the ratio of the two nearest points
+        if (lo === null) {
+            // size is below all known points — scale from the smallest two
+            if (sorted.length >= 2) {
+                const ratio = sorted[0].duration / sorted[0].size;
+                return size * ratio;
+            }
+            return sorted[0].duration * (size / sorted[0].size);
+        }
+        // size is above all known points — scale from the largest two
+        if (sorted.length >= 2) {
+            const top = sorted[sorted.length - 1];
+            const ratio = top.duration / top.size;
+            return size * ratio;
+        }
+        return sorted[sorted.length - 1].duration * (size / sorted[sorted.length - 1].size);
+    } catch (e) {
+        console.error('Error estimating duration:', e);
+        return null;
+    }
+}
+
 // Local Storage Functions for Progress Tracking
 function getTrackProgress(fileName) {
     try {
@@ -931,6 +1006,8 @@ function preloadTrackDurations() {
                     existing.duration = tempAudio.duration;
                     saveTrackProgress(track.name, existing);
                 }
+                // Record size→duration mapping for interpolation
+                recordSizeDuration(track.size, tempAudio.duration);
             }
             tempAudio.src = '';
             loadNext();
