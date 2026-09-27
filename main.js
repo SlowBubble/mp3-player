@@ -112,8 +112,16 @@ function displayPlaylist() {
             if (b.id === activeTrack.id) return 1;
         }
         switch (sortKey) {
-            case 'shortest': return (a.size ?? Infinity) - (b.size ?? Infinity);
-            case 'longest':  return (b.size ?? 0) - (a.size ?? 0);
+            case 'shortest': {
+                const aDur = (getTrackProgress(a.name)?.duration) || estimateDuration(a.size) || (a.size ?? Infinity);
+                const bDur = (getTrackProgress(b.name)?.duration) || estimateDuration(b.size) || (b.size ?? Infinity);
+                return aDur - bDur;
+            }
+            case 'longest': {
+                const aDur = (getTrackProgress(a.name)?.duration) || estimateDuration(a.size) || (a.size ?? 0);
+                const bDur = (getTrackProgress(b.name)?.duration) || estimateDuration(b.size) || (b.size ?? 0);
+                return bDur - aDur;
+            }
             case 'newest':   return (b.lastModified ?? 0) - (a.lastModified ?? 0);
             case 'oldest':   return (a.lastModified ?? Infinity) - (b.lastModified ?? Infinity);
             default:         return 0;
