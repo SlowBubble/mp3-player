@@ -395,7 +395,7 @@
                 <button class="btn" onclick="document.getElementById('file-input').click()">
                     📁 Select Music Folder
                 </button>
-                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-09-27c</p>
+                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-09-27d</p>
             </div>            <div id="post-load-controls" style="display:none;">
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-sort" style="flex:1;" onclick="location.reload()" title="Refresh app">🔄 Refresh</button>
@@ -409,7 +409,7 @@
 
         <!-- Player Page -->
         <div id="player-page" class="page">
-            <div class="track-title" id="current-track-title" style="text-align: center; padding: 20px 20px 0;">Select a track</div>
+            <div class="track-title" id="current-track-title" style="text-align: center; padding: 20px 20px 0; cursor: pointer;" onclick="togglePlayPause()">Select a track</div>
             <audio id="audio-player" preload="metadata"></audio>
         </div>
     </div>
