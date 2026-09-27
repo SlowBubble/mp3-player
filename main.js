@@ -177,6 +177,13 @@ function displayPlaylist() {
 
         // Insert a labeled divider at bucket boundaries
         if (prevTrack !== null) {
+            // Demarcation after the pinned active track
+            if (activeTrack && prevTrack.id === activeTrack.id) {
+                const divider = document.createElement('div');
+                divider.className = 'track-divider';
+                playlist.appendChild(divider);
+            }
+
             let dividerLabel = null;
             if (sortKey === 'shortest' || sortKey === 'longest') {
                 const curDur = (progressData && progressData.duration) || estimateDuration(track.size);
