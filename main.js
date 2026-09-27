@@ -123,7 +123,31 @@ function displayPlaylist() {
     // Get hidden tracks list
     const hiddenTracks = JSON.parse(localStorage.getItem('hiddenTracks') || '[]');
 
-    const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
+    // Duration bucket breakpoints in seconds, with labels
+    const DURATION_BUCKETS = [
+        { maxSecs: 6 * 60,         label: 'under 6 min' },
+        { maxSecs: 11 * 60,        label: 'under 11 min' },
+        { maxSecs: 21 * 60,        label: 'under 21 min' },
+        { maxSecs: 41 * 60,        label: 'under 41 min' },
+        { maxSecs: 60 * 60,        label: 'under 1 hr' },
+        { maxSecs: 2 * 60 * 60,    label: 'under 2 hr' },
+        { maxSecs: 4 * 60 * 60,    label: 'under 4 hr' },
+        { maxSecs: Infinity,       label: '4 hr+' },
+    ];
+
+    function getDurationBucket(secs) {
+        return DURATION_BUCKETS.findIndex(b => secs < b.maxSecs);
+    }
+
+    function dateKey(ts) {
+        const d = new Date(ts);
+        return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    }
+
+    function formatDateLabel(ts) {
+        return new Date(ts).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
     let prevTrack = null;
     let prevProgressData = null;
 
@@ -143,21 +167,31 @@ function displayPlaylist() {
 
         const progressData = getTrackProgress(track.name);
 
-        // Insert a divider when there's a big gap from the previous track
+        // Insert a labeled divider at bucket boundaries
         if (prevTrack !== null) {
-            let showDivider = false;
-            if ((sortKey === 'shortest' || sortKey === 'longest') && progressData && progressData.duration && prevProgressData && prevProgressData.duration) {
-                const a = prevProgressData.duration;
-                const b = progressData.duration;
-                const ratio = Math.max(a, b) / Math.min(a, b);
-                if (ratio >= 1.5) showDivider = true;
+            let dividerLabel = null;
+            if (sortKey === 'shortest' || sortKey === 'longest') {
+                const curDur = progressData && progressData.duration;
+                const prevDur = prevProgressData && prevProgressData.duration;
+                if (curDur && prevDur) {
+                    const curBucket = getDurationBucket(curDur);
+                    const prevBucket = getDurationBucket(prevDur);
+                    if (curBucket !== prevBucket) {
+                        // Label describes the bucket we're entering
+                        dividerLabel = DURATION_BUCKETS[curBucket].label;
+                    }
+                }
             } else if (sortKey === 'newest' || sortKey === 'oldest') {
-                const gap = Math.abs((track.lastModified ?? 0) - (prevTrack.lastModified ?? 0));
-                if (gap >= TWO_HOURS_MS) showDivider = true;
+                const curKey = dateKey(track.lastModified ?? 0);
+                const prevKey = dateKey(prevTrack.lastModified ?? 0);
+                if (curKey !== prevKey) {
+                    dividerLabel = formatDateLabel(track.lastModified ?? 0);
+                }
             }
-            if (showDivider) {
+            if (dividerLabel !== null) {
                 const divider = document.createElement('div');
                 divider.className = 'track-divider';
+                divider.textContent = dividerLabel;
                 playlist.appendChild(divider);
             }
         }
