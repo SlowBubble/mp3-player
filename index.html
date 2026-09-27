@@ -244,7 +244,7 @@
         .control-buttons {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 25px;
             margin-bottom: 0;
         }
 
@@ -285,7 +285,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 0;
-            margin-top: 20px;
+            margin-top: 25px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -296,13 +296,14 @@
 
         .home-btn-bar {
             display: flex;
+            gap: 10px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 5px;
+            margin-top: 25px;
         }
 
         .back-btn-bar {
             display: flex;
-            gap: 4px;
+            gap: 10px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -395,7 +396,7 @@
                 <button class="btn" onclick="document.getElementById('file-input').click()">
                     📁 Select Music Folder
                 </button>
-                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-09-27j</p>
+                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-09-27k</p>
             </div>            <div id="post-load-controls" style="display:none;">
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-sort" style="flex:1;" onclick="location.reload()" title="Refresh app">🔄 Refresh</button>
@@ -408,8 +409,8 @@
         </div>
 
         <!-- Player Page -->
-        <div id="player-page" class="page">
-            <div class="track-title" id="current-track-title" style="text-align: center; padding: 20px 20px 0; cursor: pointer;" onclick="togglePlayPause()">Select a track</div>
+        <div id="player-page" class="page" onclick="togglePlayPause()" style="cursor: pointer;">
+            <div class="track-title" id="current-track-title" style="text-align: center; padding: 20px 20px 0;">Select a track</div>
             <audio id="audio-player" preload="metadata"></audio>
         </div>
     </div>
@@ -428,7 +429,7 @@
 
         <div class="back-btn-bar">
             <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()" title="Playback Speed">1x</button>
-            <button class="control-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶️</button>
+            <button class="control-btn icon-sm" style="flex: 2;" onclick="showHomePage()" title="Back to playlist">🏠</button>
             <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track">✕</button>
         </div>
 
@@ -444,7 +445,7 @@
 
         <div class="home-btn-bar">
             <button class="control-btn icon-lg" onclick="prevChapter()" title="Previous Chapter">⏮️</button>
-            <button class="control-btn icon-sm" style="flex: 2;" onclick="showHomePage()" title="Back to playlist">🏠</button>
+            <button class="control-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶️</button>
             <button class="control-btn icon-lg" onclick="nextChapter()" title="Next Chapter">⏭️</button>
         </div>
     </div>
