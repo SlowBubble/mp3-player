@@ -557,11 +557,20 @@ function getNextVisibleTrackIndex() {
     const sortKey = SORT_MODES[currentSortIndex].key;
     const activeTrack = currentTracks[currentTrackIndex];
 
-    // Build the same sorted order used by displayPlaylist (without pinning the active track)
+    // Build the same sorted order used by displayPlaylist (without pinning the active track),
+    // using actual saved durations for shortest/longest (same logic as displayPlaylist).
     const sorted = [...currentTracks].sort((a, b) => {
         switch (sortKey) {
-            case 'shortest': return (a.size ?? Infinity) - (b.size ?? Infinity);
-            case 'longest':  return (b.size ?? 0) - (a.size ?? 0);
+            case 'shortest': {
+                const aDur = (getTrackProgress(a.name)?.duration) || estimateDuration(a.size) || (a.size ?? Infinity);
+                const bDur = (getTrackProgress(b.name)?.duration) || estimateDuration(b.size) || (b.size ?? Infinity);
+                return aDur - bDur;
+            }
+            case 'longest': {
+                const aDur = (getTrackProgress(a.name)?.duration) || estimateDuration(a.size) || (a.size ?? 0);
+                const bDur = (getTrackProgress(b.name)?.duration) || estimateDuration(b.size) || (b.size ?? 0);
+                return bDur - aDur;
+            }
             case 'newest':   return (b.lastModified ?? 0) - (a.lastModified ?? 0);
             case 'oldest':   return (a.lastModified ?? Infinity) - (b.lastModified ?? Infinity);
             default:         return 0;
@@ -992,8 +1001,8 @@ function hideCurrentAndPlayNext() {
         localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
     }
 
-    // Play shortest remaining track, or go back to playlist if none
-    const nextIndex = getShortestVisibleTrackIndex();
+    // Play the next track in the current sort order, skipping hidden ones
+    const nextIndex = getNextVisibleTrackIndex();
     if (nextIndex !== -1) {
         playTrack(nextIndex);
     } else {
