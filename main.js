@@ -133,13 +133,13 @@ function displayPlaylist() {
 
     // Duration bucket breakpoints in seconds, with labels
     const DURATION_BUCKETS = [
-        { maxSecs: 6 * 60,         label: 'under 6 min' },
-        { maxSecs: 11 * 60,        label: 'under 11 min' },
-        { maxSecs: 21 * 60,        label: 'under 21 min' },
-        { maxSecs: 41 * 60,        label: 'under 41 min' },
-        { maxSecs: 60 * 60,        label: 'under 1 hr' },
-        { maxSecs: 2 * 60 * 60,    label: 'under 2 hr' },
-        { maxSecs: 4 * 60 * 60,    label: 'under 4 hr' },
+        { maxSecs: 6 * 60,         label: '0–6 min' },
+        { maxSecs: 11 * 60,        label: '6–11 min' },
+        { maxSecs: 21 * 60,        label: '11–21 min' },
+        { maxSecs: 41 * 60,        label: '21–41 min' },
+        { maxSecs: 60 * 60,        label: '41 min–1 hr' },
+        { maxSecs: 2 * 60 * 60,    label: '1–2 hr' },
+        { maxSecs: 4 * 60 * 60,    label: '2–4 hr' },
         { maxSecs: Infinity,       label: '4 hr+' },
     ];
 
@@ -153,7 +153,11 @@ function displayPlaylist() {
     }
 
     function formatDateLabel(ts) {
-        return new Date(ts).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const d = new Date(ts);
+        const datePart = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        const hour = d.getHours();
+        const ampm = hour < 12 ? 'AM' : 'PM';
+        return `${datePart} ${ampm}`;
     }
 
     let prevTrack = null;
@@ -179,8 +183,16 @@ function displayPlaylist() {
         if (prevTrack !== null) {
             // Demarcation after the pinned active track
             if (activeTrack && prevTrack.id === activeTrack.id) {
+                let pinDividerLabel = null;
+                if (sortKey === 'shortest' || sortKey === 'longest') {
+                    const curDur = (progressData && progressData.duration) || estimateDuration(track.size);
+                    if (curDur) pinDividerLabel = DURATION_BUCKETS[getDurationBucket(curDur)].label;
+                } else if (sortKey === 'newest' || sortKey === 'oldest') {
+                    pinDividerLabel = formatDateLabel(track.lastModified ?? 0);
+                }
                 const divider = document.createElement('div');
                 divider.className = 'track-divider';
+                if (pinDividerLabel) divider.textContent = pinDividerLabel;
                 playlist.appendChild(divider);
             }
 
