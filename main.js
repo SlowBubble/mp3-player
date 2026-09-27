@@ -181,7 +181,8 @@ function displayPlaylist() {
 
         // Insert a labeled divider at bucket boundaries
         if (prevTrack !== null) {
-            // Demarcation after the pinned active track
+            // Demarcation after the pinned active track — always insert one divider here
+            // and skip the regular bucket/date check to avoid a double divider.
             if (activeTrack && prevTrack.id === activeTrack.id) {
                 let pinDividerLabel = null;
                 if (sortKey === 'shortest' || sortKey === 'longest') {
@@ -194,33 +195,36 @@ function displayPlaylist() {
                 divider.className = 'track-divider';
                 if (pinDividerLabel) divider.textContent = pinDividerLabel;
                 playlist.appendChild(divider);
-            }
-
-            let dividerLabel = null;
-            if (sortKey === 'shortest' || sortKey === 'longest') {
-                const curDur = (progressData && progressData.duration) || estimateDuration(track.size);
-                const prevDur = (prevProgressData && prevProgressData.duration) || estimateDuration(prevTrack.size);
-                if (curDur && prevDur) {
-                    const curBucket = getDurationBucket(curDur);
-                    const prevBucket = getDurationBucket(prevDur);
-                    if (curBucket !== prevBucket) {
-                        // Label describes the bucket we're entering
-                        dividerLabel = DURATION_BUCKETS[curBucket].label;
+                // Skip the regular boundary check — we already inserted a divider here.
+            } else {
+                let dividerLabel = null;
+                if (sortKey === 'shortest' || sortKey === 'longest') {
+                    const curDur = (progressData && progressData.duration) || estimateDuration(track.size);
+                    const prevDur = (prevProgressData && prevProgressData.duration) || estimateDuration(prevTrack.size);
+                    if (curDur && prevDur) {
+                        const curBucket = getDurationBucket(curDur);
+                        const prevBucket = getDurationBucket(prevDur);
+                        if (curBucket !== prevBucket) {
+                            // Label describes the bucket we're entering
+                            dividerLabel = DURATION_BUCKETS[curBucket].label;
+                        }
+                    }
+                } else if (sortKey === 'newest' || sortKey === 'oldest') {
+                    const curKey = dateKey(track.lastModified ?? 0);
+                    const prevKey = dateKey(prevTrack.lastModified ?? 0);
+                    if (curKey !== prevKey) {
+                        dividerLabel = formatDateLabel(track.lastModified ?? 0);
                     }
                 }
-            } else if (sortKey === 'newest' || sortKey === 'oldest') {
-                const curKey = dateKey(track.lastModified ?? 0);
-                const prevKey = dateKey(prevTrack.lastModified ?? 0);
-                if (curKey !== prevKey) {
-                    dividerLabel = formatDateLabel(track.lastModified ?? 0);
+                if (dividerLabel !== null) {
+                    const divider = document.createElement('div');
+                    divider.className = 'track-divider';
+                    divider.textContent = dividerLabel;
+                    playlist.appendChild(divider);
                 }
             }
-            if (dividerLabel !== null) {
-                const divider = document.createElement('div');
-                divider.className = 'track-divider';
-                divider.textContent = dividerLabel;
-                playlist.appendChild(divider);
-            }
+        } else if (activeTrack && track.id === activeTrack.id) {
+            // The pinned track is first — we'll append a divider right after it below.
         }
 
         let durationText = '';
@@ -268,6 +272,15 @@ function displayPlaylist() {
         `;
 
         playlist.appendChild(trackElement);
+
+        // If this is the pinned track and it was the first item (prevTrack was null),
+        // insert the separator divider immediately after it.
+        if (activeTrack && track.id === activeTrack.id && prevTrack === null) {
+            const pinDivider = document.createElement('div');
+            pinDivider.className = 'track-divider';
+            playlist.appendChild(pinDivider);
+        }
+
         prevTrack = track;
         prevProgressData = progressData;
     });
