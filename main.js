@@ -8,6 +8,7 @@ let currentRateIndex = 0;
 let progressUpdateInterval = null;
 let listeningSessionStart = null;
 let showingHiddenView = false;
+let visibleCount = 30;
 
 const SORT_MODES = [
     { key: 'shortest', label: 'Sort (Small)' },
@@ -165,12 +166,23 @@ function displayPlaylist() {
     let prevTrack = null;
     let prevProgressData = null;
 
-    sortedTracks.forEach((track) => {
-        // Toggle filtering logic
+    // Apply hidden/visible filter first, then paginate
+    const filteredTracks = sortedTracks.filter(track => {
         const isHidden = hiddenTracks.includes(track.name);
-        if (showingHiddenView && !isHidden) return;
-        if (!showingHiddenView && isHidden) return;
+        if (showingHiddenView && !isHidden) return false;
+        if (!showingHiddenView && isHidden) return false;
+        return true;
+    });
 
+    // Always include the pinned track even if it falls outside the visible window
+    const pinnedInFiltered = pinnedTrack ? filteredTracks.findIndex(t => t.id === pinnedTrack.id) : -1;
+    const pageSlice = filteredTracks.slice(0, visibleCount);
+    if (pinnedTrack && pinnedInFiltered >= visibleCount) {
+        pageSlice.unshift(filteredTracks[pinnedInFiltered]);
+    }
+    const hasMore = filteredTracks.length > visibleCount;
+
+    pageSlice.forEach((track) => {
         // Find original index for playTrack function
         const originalIndex = currentTracks.findIndex(t => t.id === track.id);
 
@@ -286,6 +298,20 @@ function displayPlaylist() {
         prevTrack = track;
         prevProgressData = progressData;
     });
+
+    // Load more button
+    if (hasMore) {
+        const remaining = filteredTracks.length - visibleCount;
+        const loadMoreBtn = document.createElement('button');
+        loadMoreBtn.className = 'btn';
+        loadMoreBtn.style.marginTop = '10px';
+        loadMoreBtn.textContent = `Load ${Math.min(30, remaining)} more (${remaining} remaining)`;
+        loadMoreBtn.onclick = () => {
+            visibleCount += 30;
+            displayPlaylist();
+        };
+        playlist.appendChild(loadMoreBtn);
+    }
 }
 
 // Play a specific track
@@ -1058,11 +1084,13 @@ function cycleSortMode() {
     localStorage.setItem('sortIndex', currentSortIndex);
     const btn = document.getElementById('sort-btn');
     if (btn) btn.textContent = SORT_MODES[currentSortIndex].label;
+    visibleCount = 30;
     displayPlaylist();
 }
 
 function toggleHiddenView() {
     showingHiddenView = !showingHiddenView;
+    visibleCount = 30;
     const btn = document.getElementById('toggle-view-btn');
     if (showingHiddenView) {
         btn.innerHTML = '🎵 Show Regular Playlist';
