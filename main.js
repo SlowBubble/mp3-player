@@ -506,8 +506,13 @@ function updateDuration() {
     }
 }
 
-// Update progress
+// Update progress (throttled to at most once per second)
+let lastProgressUpdate = 0;
 function updateProgress() {
+    const now = Date.now();
+    if (now - lastProgressUpdate < 1000) return;
+    lastProgressUpdate = now;
+
     if (audioPlayer.duration) {
         const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
         progressFill.style.width = progress + '%';
@@ -776,10 +781,24 @@ document.addEventListener('touchend', function (event) {
 const SIZE_DURATION_MAP_KEY = 'sizeDurationMap';
 const SIZE_DURATION_MAP_MAX = 200;
 
+// In-memory cache — null means not yet loaded from localStorage
+let _sizeDurationMap = null;
+
+function getSizeDurationMap() {
+    if (_sizeDurationMap === null) {
+        try {
+            _sizeDurationMap = JSON.parse(localStorage.getItem(SIZE_DURATION_MAP_KEY) || '[]');
+        } catch (e) {
+            _sizeDurationMap = [];
+        }
+    }
+    return _sizeDurationMap;
+}
+
 function recordSizeDuration(size, duration) {
     if (!size || !duration || isNaN(duration)) return;
     try {
-        const map = JSON.parse(localStorage.getItem(SIZE_DURATION_MAP_KEY) || '[]');
+        const map = getSizeDurationMap();
         // Update existing entry for this size, or push a new one
         const existing = map.findIndex(e => e.size === size);
         if (existing !== -1) {
@@ -800,7 +819,7 @@ function recordSizeDuration(size, duration) {
 function estimateDuration(size) {
     if (!size) return null;
     try {
-        const map = JSON.parse(localStorage.getItem(SIZE_DURATION_MAP_KEY) || '[]');
+        const map = getSizeDurationMap();
         if (map.length === 0) return null;
 
         // Sort by size ascending
@@ -1067,18 +1086,21 @@ function preloadTrackDurations() {
                 recordSizeDuration(track.size, tempAudio.duration);
             }
             tempAudio.src = '';
-            loadNext();
-            // Refresh playlist after each track loads so sorting improves progressively,
-            // and always refresh on the last one.
-            displayPlaylist();
+            // Render once when all tracks are done
+            if (index >= tracksNeedingDuration.length) {
+                displayPlaylist();
+            } else {
+                loadNext();
+            }
         });
 
         tempAudio.addEventListener('error', function () {
             tempAudio.src = '';
-            loadNext();
-            // Still refresh on error so the final state is shown
-            if (index === tracksNeedingDuration.length) {
+            // Render once when all tracks are done
+            if (index >= tracksNeedingDuration.length) {
                 displayPlaylist();
+            } else {
+                loadNext();
             }
         });
     }
