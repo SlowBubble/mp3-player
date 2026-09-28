@@ -68,8 +68,6 @@ function handleFileSelection(event) {
         url: URL.createObjectURL(file)
     }));
 
-    preloadTrackDurations();
-
     // Navigate to the track page if there was an active track last session
     const lastActiveTrack = localStorage.getItem('lastActiveTrack');
     const resumeIndex = lastActiveTrack
@@ -1053,59 +1051,6 @@ function unhideTrack(event, fileName) {
     hiddenTracks = hiddenTracks.filter(name => name !== fileName);
     localStorage.setItem('hiddenTracks', JSON.stringify(hiddenTracks));
     displayPlaylist();
-}
-
-// Preload durations for all tracks that don't have one saved yet
-function preloadTrackDurations() {
-    const tracksNeedingDuration = currentTracks.filter(track => {
-        const data = getTrackProgress(track.name);
-        return !data || !data.duration;
-    });
-
-    if (tracksNeedingDuration.length === 0) return;
-
-    let index = 0;
-
-    function loadNext() {
-        if (index >= tracksNeedingDuration.length) return;
-        const track = tracksNeedingDuration[index++];
-
-        const tempAudio = new Audio();
-        tempAudio.preload = 'metadata';
-        tempAudio.src = track.url;
-        tempAudio.load();
-
-        tempAudio.addEventListener('loadedmetadata', function () {
-            if (tempAudio.duration && !isNaN(tempAudio.duration)) {
-                const existing = getTrackProgress(track.name) || {};
-                if (!existing.duration) {
-                    existing.duration = tempAudio.duration;
-                    saveTrackProgress(track.name, existing);
-                }
-                // Record size→duration mapping for interpolation
-                recordSizeDuration(track.size, tempAudio.duration);
-            }
-            tempAudio.src = '';
-            // Render once when all tracks are done
-            if (index >= tracksNeedingDuration.length) {
-                displayPlaylist();
-            } else {
-                loadNext();
-            }
-        });
-
-        tempAudio.addEventListener('error', function () {
-            tempAudio.src = '';
-            // Render once when all tracks are done
-            if (index >= tracksNeedingDuration.length) {
-                displayPlaylist();
-            } else {
-                loadNext();
-            }
-        });
-    }
-
-    loadNext();
 }
 
 function cycleSortMode() {
