@@ -388,7 +388,7 @@
                 <button class="btn" onclick="document.getElementById('file-input').click()">
                     📁 Select Music Folder
                 </button>
-                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-10-02</p>
+                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-10-03</p>
             </div>            <div id="post-load-controls" style="display:none;">
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-sort" style="flex:1;" onclick="location.reload()" title="Refresh app">🔄 Refresh</button>
@@ -419,9 +419,9 @@
         <div class="now-playing">
         </div>
 
-        <div class="home-btn-bar">
-            <button class="control-btn icon-lg" onclick="prevChapter()" title="Previous Chapter">⏮️</button>
-            <button class="control-btn icon-lg" onclick="nextChapter()" title="Next Chapter">⏭️</button>
+        <div class="control-buttons">
+            <button class="control-btn icon-xs" onclick="rewind7()" title="Rewind 7s">⏪</button>
+            <button class="control-btn icon-xs" onclick="forward7()" title="Forward 7s">⏩</button>
         </div>
 
         <div class="progress-container">
@@ -434,9 +434,9 @@
             </div>
         </div>
 
-        <div class="control-buttons">
-            <button class="control-btn icon-xs" onclick="rewind7()" title="Rewind 7s">⏪</button>
-            <button class="control-btn icon-xs" onclick="forward7()" title="Forward 7s">⏩</button>
+        <div class="home-btn-bar">
+            <button class="control-btn icon-lg" onclick="prevChapter()" title="Previous Chapter">⏮️</button>
+            <button class="control-btn icon-lg" onclick="nextChapter()" title="Next Chapter">⏭️</button>
         </div>
 
     </div>
