@@ -24,8 +24,8 @@ const playlist = document.getElementById('playlist');
 const homePage = document.getElementById('home-page');
 const playerPage = document.getElementById('player-page');
 const playerControls = document.getElementById('player-controls');
+const backBtnBar = document.getElementById('back-btn-bar');
 const currentTrackTitle = document.getElementById('current-track-title');
-const playPauseBtn = document.getElementById('play-pause-btn');
 const progressFill = document.getElementById('progress-fill');
 const currentTimeSpan = document.getElementById('current-time');
 const totalTimeSpan = document.getElementById('total-time');
@@ -48,6 +48,51 @@ function setupEventListeners() {
     audioPlayer.addEventListener('ended', handleTrackEnd);
     // Progress bar click
     progressBar.addEventListener('click', seekToPosition);
+
+    // Player page tap handling:
+    // single tap  → play/pause
+    // double tap left half  → rewind 45s
+    // double tap right half → forward 45s
+    let tapTimer = null;
+    let tapCount = 0;
+    let lastTapX = 0;
+
+    function handlePlayerTap(x) {
+        tapCount++;
+        lastTapX = x;
+
+        if (tapCount === 1) {
+            tapTimer = setTimeout(() => {
+                tapCount = 0;
+                togglePlayPause();
+            }, 300);
+        } else if (tapCount === 2) {
+            clearTimeout(tapTimer);
+            tapCount = 0;
+            const isLeftHalf = lastTapX < playerPage.offsetWidth / 2;
+            if (isLeftHalf) {
+                rewind45();
+            } else {
+                forward45();
+            }
+        }
+    }
+
+    // Use touchend for mobile (prevents 300ms delay), click as fallback for desktop
+    let touchHandled = false;
+    playerPage.addEventListener('touchend', (e) => {
+        // Ignore touches on child interactive elements
+        if (e.target !== playerPage && e.target !== currentTrackTitle) return;
+        e.preventDefault();
+        touchHandled = true;
+        const touch = e.changedTouches[0];
+        handlePlayerTap(touch.clientX);
+    }, { passive: false });
+
+    playerPage.addEventListener('click', (e) => {
+        if (touchHandled) { touchHandled = false; return; }
+        handlePlayerTap(e.clientX);
+    });
 }
 
 // Handle file selection
@@ -432,8 +477,6 @@ function togglePlayPause() {
 
 // Update play/pause button
 function updatePlayPauseButton() {
-    playPauseBtn.textContent = isPlaying ? '⏸️' : '▶️';
-    playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
     document.body.classList.toggle('playing', isPlaying);
 }
 
@@ -671,6 +714,7 @@ function showHomePage() {
     homePage.classList.add('active');
     playerPage.classList.remove('active');
     playerControls.style.display = 'none';
+    backBtnBar.style.display = 'none';
     document.body.classList.remove('player-active');
 
     // Don't stop progress tracking - keep it running if audio is playing
@@ -716,6 +760,7 @@ function showPlayerPage() {
     homePage.classList.remove('active');
     playerPage.classList.add('active');
     playerControls.style.display = 'block';
+    backBtnBar.style.display = 'flex';
     document.body.classList.add('player-active');
 }
 

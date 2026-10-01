@@ -264,10 +264,6 @@
             border-right: none;
         }
 
-        .control-btn.play-pause {
-            font-size: 28px;
-        }
-
         .control-btn:hover,
         .control-btn:active {
             background: rgba(255, 255, 255, 0.28);
@@ -298,15 +294,15 @@
         }
 
         .back-btn-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
             display: flex;
-            gap: 10px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 0;
+            background: rgba(0, 0, 0, 0.9);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .control-btn.play-pause {
-            flex: 3;
-            font-size: 32px;
+            z-index: 100;
         }
 
         .control-btn.icon-xs { font-size: 14px; }
@@ -334,7 +330,7 @@
 
         /* Adjust player page to not be hidden by fixed header */
         #player-page {
-            padding-top: 0;
+            padding-top: 60px;
             flex-direction: column;
             justify-content: space-between;
             height: calc(100vh - 280px);
@@ -392,7 +388,7 @@
                 <button class="btn" onclick="document.getElementById('file-input').click()">
                     📁 Select Music Folder
                 </button>
-                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-09-28b</p>
+                <p style="text-align:center; opacity:0.5; font-size:12px; margin:8px 0 0;">v2026-10-01</p>
             </div>            <div id="post-load-controls" style="display:none;">
                 <div style="display:flex; gap:10px;">
                     <button class="btn btn-sort" style="flex:1;" onclick="location.reload()" title="Refresh app">🔄 Refresh</button>
@@ -405,10 +401,17 @@
         </div>
 
         <!-- Player Page -->
-        <div id="player-page" class="page" onclick="togglePlayPause()" style="cursor: pointer;">
+        <div id="player-page" class="page" style="cursor: pointer;">
             <div class="track-title" id="current-track-title" style="text-align: center; padding: 20px 20px 0;">Select a track</div>
             <audio id="audio-player" preload="metadata"></audio>
         </div>
+    </div>
+
+    <!-- Top nav bar (shown on player page) -->
+    <div id="back-btn-bar" class="back-btn-bar" style="display: none;">
+        <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()" title="Playback Speed">1x</button>
+        <button class="control-btn icon-sm" style="flex: 2;" onclick="showHomePage()" title="Back to playlist">🏠</button>
+        <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track">✕</button>
     </div>
 
     <!-- Player Controls (shown on player page) -->
@@ -423,27 +426,19 @@
             </div>
         </div>
 
-        <div class="back-btn-bar">
-            <button class="control-btn small" id="playback-rate-btn" onclick="togglePlaybackRate()" title="Playback Speed">1x</button>
-            <button class="control-btn icon-sm" style="flex: 2;" onclick="showHomePage()" title="Back to playlist">🏠</button>
-            <button class="hide-and-next-btn" onclick="hideCurrentAndPlayNext()" title="Hide track">✕</button>
-        </div>
-
         <div class="now-playing">
         </div>
 
         <div class="home-btn-bar">
             <button class="control-btn icon-lg" onclick="prevChapter()" title="Previous Chapter">⏮️</button>
-            <button class="control-btn play-pause" id="play-pause-btn" onclick="togglePlayPause()" title="Play/Pause">▶️</button>
             <button class="control-btn icon-lg" onclick="nextChapter()" title="Next Chapter">⏭️</button>
         </div>
 
         <div class="control-buttons">
-            <button class="control-btn icon-sm" onclick="rewind45()" title="Rewind 45s">⏪</button>
             <button class="control-btn icon-xs" onclick="rewind7()" title="Rewind 7s">⏪</button>
             <button class="control-btn icon-xs" onclick="forward7()" title="Forward 7s">⏩</button>
-            <button class="control-btn icon-sm" onclick="forward45()" title="Forward 45s">⏩</button>
         </div>
+
     </div>
 
     <script src="main.js"></script>
